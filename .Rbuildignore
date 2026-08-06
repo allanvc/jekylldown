@@ -1,0 +1,8 @@
+^DESIGN\.md$
+^.*\.Rproj$
+^\..*$
+^README\.Rmd$
+^README\.html$
+^build_and_install\.R$
+^mysite$
+^\.Rproj\.user$

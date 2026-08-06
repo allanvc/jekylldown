@@ -1,0 +1,38 @@
+Package: jekylldown
+Title: Create, Build and Serve 'Jekyll' Websites from 'R Markdown' and
+    'Quarto'
+Version: 0.1.12
+Authors@R:
+    person("Allan V. C.", "Quadros", email = "allanvcq@gmail.com",
+           role = c("aut", "cre"))
+Description: Do for 'Jekyll' what 'blogdown' does for 'Hugo': create sites
+    from the most popular themes ('al-folio', 'Chirpy',
+    'Minimal Mistakes', 'minima'), write posts in R Markdown or 'Quarto'
+    that are knitted to Markdown consumed natively by 'Jekyll', customize
+    theme colors, fonts and elements declaratively from R, migrate
+    'blogdown'/'Hugo' sites, build and serve the site locally with live
+    reload, and diagnose the Ruby/Jekyll toolchain. Jekyll is invoked
+    strictly via its command line interface; no R-Ruby language bridge is
+    used.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    cli,
+    fs,
+    knitr,
+    processx,
+    servr,
+    xfun,
+    yaml
+Suggests:
+    quarto,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    withr
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+SystemRequirements: Ruby (>= 3.0), jekyll, bundler
+URL: https://github.com/allanvc/jekylldown
+BugReports: https://github.com/allanvc/jekylldown/issues

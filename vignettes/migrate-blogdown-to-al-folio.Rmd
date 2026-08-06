@@ -1,0 +1,212 @@
+---
+title: "Migrating from blogdown/Hugo to jekylldown + al-folio"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Migrating from blogdown/Hugo to jekylldown + al-folio}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+[al-folio](https://github.com/alshedivat/al-folio) is the de-facto
+reference theme for academic sites — publications generated from BibTeX,
+news, CV, and teaching pages as structured data. Hugo has no equivalent,
+which is the main reason to move a blogdown site to Jekyll. This vignette
+walks through that migration with jekylldown, keeping your posts in
+R Markdown throughout.
+
+al-folio is the vignette's focus, but `migrate_hugo()` targets any of
+the supported themes — `theme = "chirpy"`, `"minimal-mistakes"` or
+`"minima"` work the same way, with pages, navigation, avatar and social
+profiles placed in each theme's own convention (Chirpy `_tabs/`,
+Minimal Mistakes `_pages/` + `_data/navigation.yml` + the `author:`
+sidebar, ...). Steps 1, 2 and 4 apply to all of them; step 3 is
+al-folio-specific.
+
+## Before you start
+
+1. **Work on a copy.** `migrate_hugo()` never writes into the source
+   site, but be conservative anyway: leave your production repository
+   untouched until the new site builds and looks right.
+2. **Diagnose your toolchain:**
+
+```{r}
+jekylldown::check()
+```
+
+A local Ruby/Jekyll is *optional* for this migration: knitting posts only
+needs R, and al-folio ships GitHub Actions workflows that build the site
+remotely. You only need Jekyll (plus `bundle_install()`, below) for local
+previews.
+
+## Step 1 — convert the site
+
+```{r}
+library(jekylldown)
+
+migrate_hugo(
+  from  = "~/path/to/my-hugo-site",   # blogdown/Hugo site (read-only)
+  to    = "~/path/to/my-new-site",    # created; must not exist yet
+  theme = "al-folio",                 # cloned from GitHub (needs git + network)
+  only_referenced = TRUE,             # skip static files nothing links to
+  publications = "bib",               # the default; papers.bib from the DOIs (see below)
+  theme_color = "red"                 # al-folio accent color (see below)
+)
+```
+
+The Hugo config (`config.toml`/`.yaml`) is read first and drives the
+migration. What gets converted automatically:
+
+* **Posts** under `content/post/` (also `posts/`, `blog/`) are renamed to
+  Jekyll's `YYYY-MM-DD-slug` convention. `.Rmd`/`.Rmarkdown` sources go
+  to `_source/` and will be re-knitted by jekylldown; plain `.md` posts
+  go straight to `_posts/`. Filename slugs are kept, so post URLs are
+  preserved.
+* **Front matter** (YAML or TOML) becomes Jekyll YAML: `layout: post` is
+  added, `draft: true` becomes `published: false`, `aliases` becomes
+  `redirect_from` (enable the `jekyll-redirect-from` plugin if you use
+  it), and Hugo-only keys are dropped.
+* **Page bundle resources** (images next to `index.Rmd`) are copied to
+  `assets/img/posts/<post>/` and relative image links are rewritten.
+* **Menu pages.** Every page referenced by the Hugo menu
+  (`[[menu.main]]`) — `content/publications.md`, `talks.md`, … — becomes
+  an al-folio page in `_pages/` with the same URL (`permalink`) and the
+  menu position (`nav_order`). A menu entry pointing at the posts
+  section repositions the theme's blog page instead.
+* **The home page.** `content/_index.md` becomes the body of al-folio's
+  `about.md` landing page; a `{{< figure class="avatar" >}}` shortcode
+  turns into the theme's profile picture.
+* **Site identity.** Your name (from the home page title or
+  `params.author`), `url` (from `baseURL`) and description are written
+  into `_config.yml`, including jekyll-scholar's author-highlighting
+  names.
+* **Theme demo content is scrubbed**: al-folio's sample posts, news,
+  projects, books, teachings and the Einstein pages are removed, so the
+  site starts empty instead of generic.
+* **`static/`** is copied to the site root, so absolute URLs like
+  `/images/foo.png` keep working. With `only_referenced = TRUE` only
+  files actually referenced by the migrated content (plus favicons) are
+  copied — old Hugo `static/` folders accumulate junk.
+* **Shortcodes**: `{{< figure >}}` and `{{< youtube >}}` are converted;
+  everything else is left in place and listed in the migration report.
+  A figure's `class`/`width`/`height` become a kramdown attribute list,
+  and the CSS rules behind those classes are ported from the Hugo
+  theme's sass (variables resolved) into the new site's stylesheet, so
+  images keep their original display size instead of rendering at
+  natural size.
+* **Pandoc image attributes** (`{width=100%}`) are rewritten as kramdown
+  inline attribute lists (`{: width="100%"}`).
+
+The report printed at the end lists what is left: posts with remaining
+shortcodes and content *not* referenced by the Hugo menu (dead pages,
+custom `layouts/`) — review that list before assuming it can be dropped.
+
+## Step 2 — review the posts
+
+Knit everything (no Jekyll needed) and read the output:
+
+```{r}
+build_site("~/path/to/my-new-site", local_jekyll = FALSE)
+```
+
+Things worth checking in `_posts/*.md`:
+
+* Posts using **HTML widgets** (plotly, leaflet, …) render as static
+  Markdown here; widgets that relied on blogdown's HTML pipeline need
+  rework (e.g. save a static image, or embed the widget's HTML manually).
+* Shortcodes flagged in the report need a manual equivalent (a Liquid
+  include, plain HTML, or just Markdown).
+* Draft posts were kept with `published: false`; delete or finish them.
+* Posts needing pandoc-only features — citations (`bibliography:`),
+  footnotes, cross-references — can opt in with `knit_method: pandoc`
+  in the front matter (needs rmarkdown + pandoc). New posts can also be
+  written in Quarto (`new_post(format = "qmd")`), which brings those
+  features natively via the Quarto CLI.
+
+## Step 3 — adapt the al-folio configuration
+
+`migrate_hugo()` fills in your identity (name, `url`, description) but
+al-folio's rich `_config.yml` deserves a pass by hand:
+
+* Check `baseurl` (usually `""` for a user page) and browse the config
+  for features you want (Google Analytics, comments, …).
+* Social icons live in `_data/socials.yml`. `migrate_hugo()` fills it
+  from the profile links found in your Hugo pages (GitHub, LinkedIn,
+  ORCID, Google Scholar, ResearchGate, StackOverflow, …), plus your
+  e-mail address and a CV/resume PDF link — check the migration report
+  for what was recognized and add anything missing by hand.
+* Publications: with `publications = "bib"` (the default) the DOIs on
+  the page are extracted and fetched as BibTeX from doi.org, so
+  al-folio's jekyll-scholar renders the publications page with the
+  theme's badges and buttons — deterministic and reproducible (the DOI
+  registry, not a heuristic parser or an LLM, is the source of truth).
+  Publications without a DOI are listed in the report; add them to
+  `_bibliography/papers.bib` by hand. `publications = "html"` migrates
+  your hand-written page as-is instead — that is also the automatic
+  fallback when the page has no DOI or there is no network, but note
+  that a page built around raw HTML (floats, flex `<div>`s) rarely
+  survives kramdown intact.
+* Accent color: al-folio defaults to purple. `theme_color = "red"` (or
+  any palette name / hex value) sets it at migration time, and
+  `set_theme_color()` changes it later — it needs the theme gems, so on
+  a first machine run `bundle_install()` and then `set_theme_color()`.
+
+### Known al-folio gotchas
+
+Verified with al-folio as of August 2026:
+
+* **Jupyter notebooks.** al-folio refuses to build when the
+  `jekyll-jupyter-notebook` plugin is enabled but `jupyter-nbconvert` is
+  not on the `PATH`. Since a freshly migrated site has no `.ipynb`
+  posts, `migrate_hugo()` removes the plugin from the `Gemfile` and
+  from `_config.yml` for you. If you later want to write posts as
+  notebooks, add both entries back and install Jupyter.
+* **JavaScript minification.** Terser wants a JS runtime (Node.js). The
+  build succeeds without one — assets are just not minified — so this
+  only matters for production polish. GitHub Actions provides Node, so
+  remote builds are unaffected.
+
+## Step 4 — preview locally (optional)
+
+al-folio manages its plugins with Bundler, so install its gems once into
+jekylldown's isolated environment, then serve:
+
+```{r}
+bundle_install("~/path/to/my-new-site")
+serve_site("~/path/to/my-new-site")
+# ... edit _source/*.Rmd; saving re-knits and reloads the browser
+stop_server()
+```
+
+After `bundle_install()`, `build_site()` and `serve_site()` automatically
+use `bundle exec jekyll`, so the theme's plugins are found.
+
+## Step 5 — deploy on GitHub Pages
+
+1. Create a repository named `youruser.github.io` and push the new site
+   to it (including `_source/` — it is excluded from the Jekyll build but
+   belongs in version control).
+2. In the repository settings, enable GitHub Pages with **GitHub
+   Actions** as the source: al-folio's bundled workflow
+   (`.github/workflows/deploy.yml`) builds and publishes the site on
+   every push.
+3. Your R workflow from then on: `new_post()`, write, `build_site()` (or
+   just knit via `build_site(local_jekyll = FALSE)`), commit, push. No
+   more two-repository setup as with blogdown — the source and the built
+   site live in one repo, built remotely.
+
+## Migration checklist
+
+- [ ] `migrate_hugo()` ran clean; skipped posts (if any) handled
+- [ ] posts knit with `build_site(local_jekyll = FALSE)`
+- [ ] shortcodes from the report ported
+- [ ] `_config.yml` reviewed (identity was set; check `baseurl`, extras)
+- [ ] pages not in the Hugo menu (report's manual list) triaged
+- [ ] `_data/socials.yml` reviewed (filled from your Hugo pages)
+- [ ] publications page: migrated version kept, or
+      `_bibliography/papers.bib` filled instead
+- [ ] repo pushed, GitHub Actions build green
+- [ ] old site archived (not deleted) once the new one is live
