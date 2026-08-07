@@ -39,6 +39,23 @@ but briefly busy during each rebuild.
 The rebuild is triggered by the open preview tab (it pings the server
 about once a second); with no browser tab open, nothing rebuilds.
 }
+\section{Rebuild speed}{
+
+Content-only edits (posts and pages) rebuild with jekyll's
+incremental mode -- only the changed pages are regenerated. Edits
+with site-wide effects that incremental mode does not track (sass
+partials, \verb{_config.yml}, data files) still trigger a full build.
+
+Jekyll is markedly slower on Windows, mostly because real-time
+antivirus scanning intercepts the thousands of small file reads of
+every build. If previews feel sluggish, excluding the site folder
+and jekylldown's toolchain directory
+(\code{tools::R_user_dir("jekylldown", "data")}) from real-time scanning
+(Windows Security > Virus & threat protection > Exclusions) makes
+the single biggest difference. Heavy themes also do less work per
+build with the demo content removed (\code{new_site(demo = FALSE)}).
+}
+
 \examples{
 \dontrun{
 serve_site("my-site")               # console stays free; open the URL

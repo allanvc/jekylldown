@@ -1,3 +1,14 @@
+# jekylldown 0.2.4
+
+* Faster live preview: `serve_site()` rebuilds content-only edits
+  (posts, pages) with jekyll's incremental mode, regenerating just the
+  changed pages; edits that incremental mode does not track (sass
+  partials, `_config.yml`, data files) still get a full build. The
+  `.jekyll-metadata` cache joins the serve artifacts in `.gitignore`.
+* Documented the big Windows speed lever (excluding the site and
+  toolchain directories from real-time antivirus scanning) in
+  `?serve_site` and the README.
+
 # jekylldown 0.2.3
 
 * The Windows CI smoke test grew an al-folio end-to-end leg
@@ -279,7 +290,7 @@ other three themes.
   from freshly generated sites.
 * `new_site(theme = "al-folio")` now sets `baseurl: ""` (the template
   ships its own `/al-folio`, which 404'd every asset on a fresh site
-  served at the root — the first build looked completely unstyled),
+  served at the root -- the first build looked completely unstyled),
   and the scrub comments out the placeholder profile picture (Einstein)
   so an empty site starts with no photo; `migrate_hugo()` re-enables
   the line when it finds a real avatar.
@@ -312,12 +323,12 @@ other three themes.
 * New "Publishing" section in the README: the three GitHub Pages routes
   (Actions, classic branch build and its plugin limits, local build +
   `gh-pages`), plus Netlify/Cloudflare Pages, GitLab Pages and plain
-  static hosting — `_site/` is static files, any host works.
+  static hosting -- `_site/` is static files, any host works.
 
 # jekylldown 0.1.0
 
 First minor release: four themes with scaffolding, styling, migration
-and a real-world gallery — the package is feature-complete for its
+and a real-world gallery -- the package is feature-complete for its
 anchor use cases.
 
 * New `add_mathjax()`: enables LaTeX math the way each theme expects
@@ -328,7 +339,7 @@ anchor use cases.
   2007 post.
 * The migration gallery closes the loop with a "make it yours"
   section: the customization layers applied to the gallery sites, with
-  results shown — Chirpy CSS variables plus the author portrait
+  results shown -- Chirpy CSS variables plus the author portrait
   recovered from the Hugo source, a Minimal Mistakes skin with an
   inlined Google Font, and al-folio fonts/background/managed CSS.
 * All before/after comparisons are now stacked and labeled (original
@@ -337,8 +348,8 @@ anchor use cases.
 # jekylldown 0.0.9
 
 * New vignette, "Migration gallery": four real published blogdown sites
-  — yihui.org (Yihui Xie, 1884 posts), juliasilge.com (Julia Silge),
-  jennybryan.org (Jenny Bryan) and allanvc.github.io — migrated from
+  -- yihui.org (Yihui Xie, 1884 posts), juliasilge.com (Julia Silge),
+  jennybryan.org (Jenny Bryan) and allanvc.github.io -- migrated from
   their public sources to the four supported themes, with before/after
   screenshots of more than one page per site.
 * The gallery hardened `migrate_hugo()` against the real world:
@@ -350,14 +361,14 @@ anchor use cases.
     like their `{{< >}}` cousins, and blogdown's
     `{{< blogdown/postref >}}` wrappers are resolved away;
   * literal `{{`/`{%` in migrated content (LaTeX math, template
-    snippets) are Liquid-escaped — previously a single such post
+    snippets) are Liquid-escaped -- previously a single such post
     aborted the entire Jekyll build;
   * new `rerender` argument: `rerender = FALSE` migrates the rendered
     Markdown blogdown committed next to each R source instead of
-    queueing years of old posts for re-knitting — the right mode for
+    queueing years of old posts for re-knitting -- the right mode for
     archival migrations.
 * Fixed: gem-based Minimal Mistakes sites now include `_pages` in the
-  Jekyll build — without it every migrated page 404'd.
+  Jekyll build -- without it every migrated page 404'd.
 
 # jekylldown 0.0.8
 
@@ -411,7 +422,7 @@ anchor use cases.
   Fonts faces are fetched and inlined as `@font-face`, valid anywhere in
   a stylesheet, unlike `@import`) and the base size; `set_element_style()`
   styles one semantic element (`"navbar"`, `"footer"`, `"headings"`, ...)
-  through a curated selector map — documented as the fragile layer, with
+  through a curated selector map -- documented as the fragile layer, with
   a warning when the installed theme no longer contains a mapped
   selector; `add_css()` is the escape hatch: free-form CSS in a managed,
   removable block.
@@ -430,18 +441,18 @@ anchor use cases.
   in the front matter (or site-wide with
   `options(jekylldown.knit_method = "pandoc")`): the post is rendered
   through rmarkdown's `md_document(variant = "gfm")`, which enables the
-  pandoc-only features — citations (`bibliography:`), footnotes,
-  cross-references — while figures and front matter get the same
+  pandoc-only features -- citations (`bibliography:`), footnotes,
+  cross-references -- while figures and front matter get the same
   treatment as every other post. The default remains plain knitr (fast,
   no pandoc needed).
 * `serve_site()` was rebuilt on `servr::httw()`: it now watches the whole
   source tree (`.Rmd`, `.qmd`, Markdown pages, `_config.yml`, data
   files, styles) and re-knits/re-renders whatever is outdated before
-  rebuilding — Quarto posts included. Previously only `.Rmd` changes
+  rebuilding -- Quarto posts included. Previously only `.Rmd` changes
   triggered a rebuild.
 * `install_quarto()` downloads the Quarto CLI into jekylldown's isolated
   toolchain directory (`tools::R_user_dir("jekylldown", "data")/quarto`),
-  where the package finds it automatically — nothing system-wide, no
+  where the package finds it automatically -- nothing system-wide, no
   shell configuration, delete the directory to uninstall. `check()`
   reports the Quarto found (toolchain, `PATH`, or the `quarto` package's
   discovery).
@@ -518,7 +529,7 @@ First prototype. Do for Jekyll what blogdown does for Hugo:
   kramdown inline attribute list, and the CSS rules behind those classes
   (which is where Hugo themes define figure display sizes) are ported
   from the Hugo theme's sass into the new site's stylesheet, with sass
-  variables resolved and selectors rewritten for kramdown output — so
+  variables resolved and selectors rewritten for kramdown output -- so
   images keep the size they had on the old site.
 * `set_theme_color()` changes al-folio's accent color at any time: named
   palette colors (`"red"`, `"blue"`, ...) resolved from the theme's own

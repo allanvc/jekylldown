@@ -461,3 +461,23 @@ test_that("gemfile_needs_git spots git-sourced gems", {
              file.path(site, "Gemfile"))
   expect_true(gemfile_needs_git(site))
 })
+
+test_that("rebuild_args goes incremental only for content-only edits", {
+  cmd <- list(cmd = "jekyll", args = "build", env = character())
+  # first round and unknown changes: full build
+  expect_equal(rebuild_args(cmd, first = TRUE), "build")
+  expect_equal(rebuild_args(cmd, first = FALSE, files = NULL), "build")
+  # posts/pages only: incremental
+  expect_equal(
+    rebuild_args(cmd, first = FALSE,
+                 files = c("_source/a.Rmd", "about.md", "b.qmd")),
+    c("build", "--incremental"))
+  # anything with site-wide effects: full build
+  expect_equal(
+    rebuild_args(cmd, first = FALSE,
+                 files = c("_source/a.Rmd", "_sass/_x.scss")),
+    "build")
+  expect_equal(
+    rebuild_args(cmd, first = FALSE, files = "_config.yml"),
+    "build")
+})

@@ -17,6 +17,21 @@
 #' The rebuild is triggered by the open preview tab (it pings the server
 #' about once a second); with no browser tab open, nothing rebuilds.
 #'
+#' @section Rebuild speed:
+#' Content-only edits (posts and pages) rebuild with jekyll's
+#' incremental mode -- only the changed pages are regenerated. Edits
+#' with site-wide effects that incremental mode does not track (sass
+#' partials, `_config.yml`, data files) still trigger a full build.
+#'
+#' Jekyll is markedly slower on Windows, mostly because real-time
+#' antivirus scanning intercepts the thousands of small file reads of
+#' every build. If previews feel sluggish, excluding the site folder
+#' and jekylldown's toolchain directory
+#' (`tools::R_user_dir("jekylldown", "data")`) from real-time scanning
+#' (Windows Security > Virus & threat protection > Exclusions) makes
+#' the single biggest difference. Heavy themes also do less work per
+#' build with the demo content removed (`new_site(demo = FALSE)`).
+#'
 #' @param dir Directory in (or under) the site.
 #' @param background Run the watcher/server in a separate R process?
 #'   Default `TRUE` in interactive sessions.
@@ -128,7 +143,7 @@ serve_impl <- function(root, port, ...) {
       f[!grepl("/(_site|_cache|[.]jekyll-cache|[.]sass-cache|[.]quarto|[.]git|vendor|node_modules)/",
                f)]
     },
-    handler = function(files) serve_rebuild(root, command),
+    handler = function(files) serve_rebuild(root, command, files = files),
     baseurl = jekyll_baseurl(root),
     port = port,
     ...
@@ -159,15 +174,26 @@ serve_build_command <- function(root) {
   }
 }
 
+# Content-only edits (posts, pages) can rebuild incrementally -- a big
+# win on Windows, where a full jekyll build is slow. Anything that has
+# site-wide effects jekyll's incremental mode does not track (sass
+# partials, _config.yml, data files, includes) forces a full build, as
+# does the first round.
+rebuild_args <- function(command, first, files = NULL) {
+  incremental <- !first && length(files) &&
+    all(grepl("[.]([RrQq]?md|html)$", files))
+  c(command$args, if (incremental) "--incremental")
+}
+
 # One watcher round: re-knit whatever is outdated, then `jekyll build`
 # -- quietly: one status line per rebuild instead of the full jekyll
 # echo. A knitting or build error during serving is reported but must
 # not kill the server (the user fixes the file and saves again).
-serve_rebuild <- function(root, command, first = FALSE) {
+serve_rebuild <- function(root, command, first = FALSE, files = NULL) {
   run <- function() {
     t0 <- Sys.time()
     knitted <- knit_all(root, quiet = TRUE)
-    sc <- shell_cmd(command$cmd, command$args)
+    sc <- shell_cmd(command$cmd, rebuild_args(command, first, files))
     env <- c("current", jd_env(), command$env)
     res <- processx::run(sc$cmd, sc$args, wd = root, env = env,
                          stdout = NULL, stderr = NULL,
@@ -256,9 +282,9 @@ stop_server <- function(dir = ".") {
 ensure_serve_gitignore <- function(root) {
   gitignore <- file.path(root, ".gitignore")
   gi <- if (file.exists(gitignore)) xfun::read_utf8(gitignore) else character()
-  if (!any(grepl(".jekylldown-serve", gi, fixed = TRUE))) {
-    xfun::write_utf8(c(gi, ".jekylldown-serve.*"), gitignore)
-  }
+  add <- setdiff(c(".jekylldown-serve.*", ".jekyll-metadata"),
+                 trimws(gi))
+  if (length(add)) xfun::write_utf8(c(gi, add), gitignore)
   invisible(gitignore)
 }
 

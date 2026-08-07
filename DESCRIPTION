@@ -1,7 +1,7 @@
 Package: jekylldown
 Title: Create, Build and Serve 'Jekyll' Websites from 'R Markdown' and
     'Quarto'
-Version: 0.2.3
+Version: 0.2.4
 Authors@R:
     person("Allan V. C.", "Quadros", email = "allanvcq@gmail.com",
            role = c("aut", "cre"))

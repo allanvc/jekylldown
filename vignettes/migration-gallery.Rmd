@@ -15,7 +15,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
 img { max-width: 100%; height: auto; }
 ```
 
-How does `migrate_hugo()` behave on *real* sites — not toy fixtures, but
+How does `migrate_hugo()` behave on *real* sites -- not toy fixtures, but
 blogdown sites that shaped the R community, with a decade or two of
 posts, theme-specific menus and hand-tuned layouts? This vignette
 migrates four published blogdown/Hugo sites, one to each supported
@@ -47,27 +47,27 @@ migrate_hugo(from, to, theme = ..., rerender = FALSE)
 
 `rerender = FALSE` migrates the *rendered* Markdown that blogdown
 committed next to each `.Rmd`/`.Rmarkdown` source, instead of queueing
-the sources for re-knitting — the right choice for an archive, where
+the sources for re-knitting -- the right choice for an archive, where
 code from 2008 should not run again in 2026.
 
-## Yihui Xie → minima
+## Yihui Xie to minima
 
 The creator of knitr and blogdown, and 19 years of posts:
 
 ```{r}
 migrate_hugo("yihui.org", "yihui-minima", theme = "minima",
              only_referenced = TRUE, rerender = FALSE)
-#> ✔ 1884 posts migrated
+#> v 1884 posts migrated
 ```
 
 **1884 posts** came through, Jekyll built all of them, and the spirit of
-the original — radical minimalism — survives in minima:
+the original -- radical minimalism -- survives in minima:
 
 ![yihui.org before (Hugo, left) and after (minima, right)](gallery-yihui-home.png)
 
 The stress test hiding in this site: posts *about* LaTeX and templating
 contain literal `{{` sequences, which Jekyll's Liquid engine treats as
-template tags — one such post aborts the entire 1884-post build.
+template tags -- one such post aborts the entire 1884-post build.
 `migrate_hugo()` escapes them automatically (your own
 `{{ site.baseurl }}` links are left alone):
 
@@ -78,7 +78,7 @@ and both languages land in one post feed (per-language sites need
 curation).
 
 One more thing a statistician's archive needs: minima ships no MathJax,
-so LaTeX math renders as raw text. One call fixes it — theme-aware, so
+so LaTeX math renders as raw text. One call fixes it -- theme-aware, so
 the same function flips al-folio's native flag, enables Chirpy's
 per-page math site-wide, or (as here, on minima) inserts a configured
 MathJax script into a site-local copy of the theme's head:
@@ -90,27 +90,27 @@ build_site("yihui-minima")
 
 ![A 2007 post on structural equation modeling: as migrated, the inline `$\Sigma$` and the display formula are raw text; after `add_mathjax()`, both render](gallery-yihui-math.png)
 
-## Julia Silge → Chirpy
+## Julia Silge to Chirpy
 
-A data-science screencast blog on the old Hugo Academic theme — heavy
+A data-science screencast blog on the old Hugo Academic theme -- heavy
 on code, plots and embedded videos:
 
 ```{r}
 migrate_hugo("juliasilge.com", "julia-chirpy", theme = "chirpy",
              only_referenced = TRUE, rerender = FALSE)
-#> ✔ 164 posts migrated
+#> v 164 posts migrated
 ```
 
 Academic's `[[menu.header]]` (instead of Hugo's standard `menu.main`)
 is understood, 123 posts arrive pre-rendered thanks to
-`rerender = FALSE`, and 81 `{{% youtube %}}` shortcodes — the
-percent-delimited form, with quoted arguments — become embedded
+`rerender = FALSE`, and 81 `{{% youtube %}}` shortcodes -- the
+percent-delimited form, with quoted arguments -- become embedded
 players:
 
-![juliasilge.com before (Academic, left) and after (Chirpy, right). Academic stores the profile picture as author data (`content/authors/`), which has no automatic mapping — Chirpy's avatar slot stays empty until you set `avatar:` in the config, one of the items the report leaves for hand-porting.](gallery-julia-home.png)
+![juliasilge.com before (Academic, left) and after (Chirpy, right). Academic stores the profile picture as author data (`content/authors/`), which has no automatic mapping -- Chirpy's avatar slot stays empty until you set `avatar:` in the config, one of the items the report leaves for hand-porting.](gallery-julia-home.png)
 
 A typical screencast post. One reading note: the "before" comes from
-the Internet Archive, which does not archive YouTube iframes — the
+the Internet Archive, which does not archive YouTube iframes -- the
 blank block on the left is where the original page showed the video.
 On the migrated site (right) the converted embed renders the same
 video again:
@@ -125,13 +125,13 @@ Full disclosure, and a practical note: 41 posts had no committed
 rendered output, so `rerender = FALSE` left their `.Rmd` sources in
 `_source/` for re-knitting. Re-executing years-old code was not
 realistic for this demonstration, so those 41 files were removed
-before the build — on a real migration you would knit the ones you
+before the build -- on a real migration you would knit the ones you
 care about and drop the rest.
 
-## Jenny Bryan → Minimal Mistakes
+## Jenny Bryan to Minimal Mistakes
 
 A minimalist personal site on hugo-theme-sam, which keeps its menu in
-`[[params.mainMenu]]` with `link`/`text` keys — nowhere near Hugo's
+`[[params.mainMenu]]` with `link`/`text` keys -- nowhere near Hugo's
 menu convention. The fallback finds it:
 
 ```{r}
@@ -147,9 +147,9 @@ content move into Minimal Mistakes' author sidebar:
 
 ![The about page, with the theme's masthead navigation](gallery-jenny-about.png)
 
-## Allan Quadros → al-folio
+## Allan Quadros to al-folio
 
-The migration this package was born for — an academic site with a
+The migration this package was born for -- an academic site with a
 hand-written publications page:
 
 ```{r}
@@ -163,7 +163,7 @@ migrate_hugo("my_webpage", "my-new-site", theme = "al-folio",
 `publications = "bib"` is the deterministic showpiece: the DOIs on the
 hand-written page are extracted, each reference is fetched as
 authoritative BibTeX from doi.org, journal covers are paired with their
-entries, and al-folio's jekyll-scholar renders the result — filter box,
+entries, and al-folio's jekyll-scholar renders the result -- filter box,
 DOI/Bib buttons and highlighted author name included:
 
 ![The publications page: hand-written HTML vs. jekyll-scholar from DOIs](gallery-allan-pubs.png)
@@ -172,11 +172,11 @@ DOI/Bib buttons and highlighted author name included:
 
 A migration lands on the theme's defaults. The customization layers
 (see `vignette("jekylldown")`, section 5) take it from "migrated" to
-"mine" without hand-written CSS — everything below is package
+"mine" without hand-written CSS -- everything below is package
 functions plus, where noted, one config line. Left: as migrated.
 Right: after the recipe.
 
-**Julia Silge / Chirpy** — the theme's CSS variables, plus the one
+**Julia Silge / Chirpy** -- the theme's CSS variables, plus the one
 manual item the report left us. Academic kept her portrait as author
 data, so we copy it in and point Chirpy's `avatar:` at it:
 
@@ -196,7 +196,7 @@ file.copy("juliasilge.com/content/about/sidebar/avatar.jpg",
 
 ![As migrated (left) and restyled (right): accent and sidebar tint via `set_theme_style()`, and the portrait back in its slot](gallery-julia-styled.png)
 
-**Jenny Bryan / Minimal Mistakes** — no CSS variables here; the theme
+**Jenny Bryan / Minimal Mistakes** -- no CSS variables here; the theme
 restyles through compiled skins, plus a Google Font inlined by
 `set_theme_font()`:
 
@@ -207,7 +207,7 @@ set_theme_font("Fira Sans", dir = "jenny-mm")
 
 ![As migrated (left) and with the dark skin and Fira Sans (right)](gallery-jenny-styled.png)
 
-**Allan Quadros / al-folio** — fonts, a warmer background per color
+**Allan Quadros / al-folio** -- fonts, a warmer background per color
 scheme, and a free-form touch in a managed block:
 
 ```{r}
@@ -221,7 +221,7 @@ add_css(".profile img { border-radius: 50%; }",
 
 ![As migrated (left) and after fonts, background and the rounded portrait (right)](gallery-allan-styled.png)
 
-Every one of these blocks is idempotent — re-run with other values to
+Every one of these blocks is idempotent -- re-run with other values to
 change your mind, or remove it (e.g. `add_css(character(0),
 id = "round-avatar", dir = site)`). On minima the same `set_theme_font()`,
 `add_css()` and `add_mathjax()` (shown in Yihui Xie's section) work
@@ -232,7 +232,7 @@ unchanged; only the variable layer is theme-specific.
 * Real sites diverge from Hugo conventions in the config (`config.yaml`,
   `[[menu.header]]`, `[[params.mainMenu]]`), in the content layout
   (multilingual `content/en/`, page bundles) and in the shortcodes
-  (`{{% %}}` vs `{{< >}}`) — `migrate_hugo()` handles all of the above,
+  (`{{% %}}` vs `{{< >}}`) -- `migrate_hugo()` handles all of the above,
   and prints a report of what it could not convert.
 * For archives, `rerender = FALSE` is the difference between a build
   that works and a build that tries to execute a decade of old chunks.
@@ -240,5 +240,5 @@ unchanged; only the variable layer is theme-specific.
   for hand-porting (custom shortcodes, `layouts/` overrides), and the
   aesthetics are one function call away (`set_theme_style()`,
   `set_theme_skin()`, `set_theme_font()`, `add_mathjax()`, `add_css()`).
-  The point is that the mechanical 99% — posts, pages, menus, assets,
-  identity, socials — arrives working.
+  The point is that the mechanical 99% -- posts, pages, menus, assets,
+  identity, socials -- arrives working.

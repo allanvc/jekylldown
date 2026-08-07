@@ -926,7 +926,7 @@ fm_date <- function(x) {
 # names, classes = figure classes seen -- their display size lives in the
 # Hugo theme CSS, which port_figure_classes() carries over).
 convert_shortcodes <- function(body) {
-  # blogdown wraps bundle resources as {{< blogdown/postref >}}index_files/…
+  # blogdown wraps bundle resources as {{< blogdown/postref >}}index_files/...
   # in its rendered .markdown; the prefix resolves to the page's own URL,
   # which is exactly where the migrated relative link already points, so it
   # just goes away
