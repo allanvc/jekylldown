@@ -436,3 +436,28 @@ test_that("serve_build_command adapts to the site's bundler state", {
   cmd <- serve_build_command(site)
   expect_equal(cmd$env, c(JEKYLL_NO_BUNDLER_REQUIRE = "true"))
 })
+
+test_that("hidden upstream tooling is dropped from fetched templates", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(file.path(dir, c(".devcontainer/tools", ".vscode", ".github")))
+  xfun::write_utf8("x", file.path(dir, ".gitignore"))
+  xfun::write_utf8("x", file.path(dir, ".github", "deploy.yml"))
+  xfun::write_utf8("x", file.path(dir, "index.md"))
+
+  drop_hidden_tooling(dir)
+  left <- basename(fs::dir_ls(dir, all = TRUE))
+  expect_setequal(left, c(".github", ".gitignore", "index.md"))
+})
+
+test_that("gemfile_needs_git spots git-sourced gems", {
+  site <- withr::local_tempdir()
+  expect_false(gemfile_needs_git(site))
+
+  writeLines('gem "jekyll"', file.path(site, "Gemfile"))
+  expect_false(gemfile_needs_git(site))
+
+  writeLines(c('gem "jekyll"',
+               'gem "jekyll-terser", git: "https://example.com/x.git"'),
+             file.path(site, "Gemfile"))
+  expect_true(gemfile_needs_git(site))
+})

@@ -1,3 +1,17 @@
+# jekylldown 0.2.2
+
+* al-folio scaffolds cleanly on Windows again: upstream started
+  shipping hidden tooling directories with symlinks that
+  Windows' tar cannot extract -- the archive extraction now tolerates
+  that noise, and every hidden file or directory a template ships
+  (except the deploy workflow, `.gitignore` and `.nojekyll`) is dropped
+  from the scaffolded site, on every platform and fetch path.
+* Clear guidance instead of a Ruby stack trace, twice: building a site
+  whose gems were never installed now says to run `bundle_install()`,
+  and `bundle_install()` on a Gemfile with git-sourced gems (al-folio's
+  has one) checks for git upfront and points at git-scm.com -- the one
+  step of the workflow that genuinely needs git.
+
 # jekylldown 0.2.1
 
 * `new_site()` no longer requires git for the GitHub-hosted themes

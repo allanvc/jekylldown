@@ -19,6 +19,13 @@ without any manual \code{GEM_HOME}/\code{PATH} setup. Needed once per site (and
 after editing the \code{Gemfile}); afterwards \code{\link[=build_site]{build_site()}} and
 \code{\link[=serve_site]{serve_site()}} automatically switch to \verb{bundle exec jekyll}.
 }
+\details{
+One external requirement: a \code{Gemfile} that installs gems straight from
+git repositories (al-folio's does) needs \code{git} on the \code{PATH}, because
+Bundler shells out to it -- the only step in the jekylldown workflow
+that requires git. On Windows, install it from
+\url{https://git-scm.com/downloads}.
+}
 \examples{
 \dontrun{
 bundle_install("my-site")

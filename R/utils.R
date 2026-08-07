@@ -138,13 +138,27 @@ run_jekyll <- function(args, dir = ".", echo = TRUE) {
     error_on_status = FALSE
   )
   if (res$status != 0) {
+    hint <- if (grepl("bundle install|not yet checked out",
+                      paste(res$stderr, res$stdout))) {
+      c("i" = "The site's gems are not installed yet: run
+               {.code jekylldown::bundle_install(\"{dir}\")} first.")
+    }
     cli::cli_abort(c(
       "{.code {basename(cmd)} {paste(args, collapse = ' ')}} failed
        (exit status {res$status}).",
-      "x" = "{sub('\\n.*$', '', trimws(res$stderr))}"
+      "x" = "{sub('\\n.*$', '', trimws(res$stderr))}",
+      hint
     ))
   }
   invisible(res)
+}
+
+# Does the site's Gemfile pull any gem straight from a git repository
+# (al-folio does)? Bundler shells out to git for those.
+gemfile_needs_git <- function(root) {
+  gemfile <- file.path(root, "Gemfile")
+  if (!file.exists(gemfile)) return(FALSE)
+  any(grepl("\\bgit(hub)?:", xfun::read_utf8(gemfile)))
 }
 
 #' Install a site's gem dependencies with Bundler
@@ -154,6 +168,12 @@ run_jekyll <- function(args, dir = ".", echo = TRUE) {
 #' without any manual `GEM_HOME`/`PATH` setup. Needed once per site (and
 #' after editing the `Gemfile`); afterwards [build_site()] and
 #' [serve_site()] automatically switch to `bundle exec jekyll`.
+#'
+#' One external requirement: a `Gemfile` that installs gems straight from
+#' git repositories (al-folio's does) needs `git` on the `PATH`, because
+#' Bundler shells out to it -- the only step in the jekylldown workflow
+#' that requires git. On Windows, install it from
+#' <https://git-scm.com/downloads>.
 #'
 #' @param dir Directory in (or under) the site.
 #' @return Invisibly, the [processx::run()] result.
@@ -172,6 +192,13 @@ bundle_install <- function(dir = ".") {
       "i" = "Install it with {.code gem install bundler}, then re-run.
              {.run jekylldown::check()} shows what is on the PATH."
     ))
+  }
+  if (gemfile_needs_git(root) && !nzchar(Sys.which("git"))) {
+    cli::cli_abort(c(
+      "This site's {.file Gemfile} installs gems from git repositories
+       (al-folio's does), and {.code git} was not found.",
+      "i" = "Install git from {.url https://git-scm.com/downloads} and
+             re-run {.code bundle_install(\"{dir}\")}."))
   }
   sc <- shell_cmd(bundle, "install")
   res <- processx::run(

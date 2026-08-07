@@ -110,6 +110,7 @@ scaffold_minima <- function(dir, title) {
 scaffold_al_folio <- function(dir) {
   clone_template("https://github.com/alshedivat/al-folio.git", dir,
                  "alshedivat/al-folio")
+  drop_hidden_tooling(dir)
   # the template ships baseurl: /al-folio (its own project page); on a
   # fresh site that 404s every asset when served at the root, so the
   # first build looks completely unstyled
@@ -215,7 +216,11 @@ clone_template <- function(url, dir, label) {
   }
   exdir <- tempfile("template-")
   on.exit(unlink(exdir, recursive = TRUE), add = TRUE)
-  utils::untar(tmp, exdir = exdir)
+  # templates can ship entries Windows cannot extract (symlinked
+  # tooling dirs); tolerate a noisy tar -- the hidden tooling
+  # is dropped from the scaffold anyway -- as long as the template
+  # itself landed
+  suppressWarnings(utils::untar(tmp, exdir = exdir))
   top <- list.dirs(exdir, recursive = FALSE)
   if (length(top) != 1) {
     cli::cli_abort("Unexpected archive layout for the {label} template.")
@@ -231,10 +236,19 @@ clone_template <- function(url, dir, label) {
 # tooling instructions) with their now-stale `exclude` entries, and
 # everything in .github except the workflow that builds and deploys the
 # site on GitHub Pages.
-prune_repo_tooling <- function(dir, workflow) {
+# Hidden files/directories a template can ship that have no business in
+# a user's site (editor and CI configs, symlinked
+# tooling dirs Windows cannot even extract, and so on) -- everything except the
+# Pages deploy workflow, the gitignore and .nojekyll.
+drop_hidden_tooling <- function(dir) {
   dots <- fs::dir_ls(dir, all = TRUE, regexp = "/\\.[^/]+$")
   dots <- dots[!basename(dots) %in% c(".github", ".gitignore", ".nojekyll")]
   unlink(dots, recursive = TRUE, force = TRUE)
+  invisible(dir)
+}
+
+prune_repo_tooling <- function(dir, workflow) {
+  drop_hidden_tooling(dir)
   unlink(file.path(dir, c("docs", "tools")), recursive = TRUE)
 
   dev_docs <- basename(fs::dir_ls(dir, type = "file",
