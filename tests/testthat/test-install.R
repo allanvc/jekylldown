@@ -1,19 +1,21 @@
-test_that("ri_pick_asset picks the right RubyInstaller archive", {
+test_that("RubyInstaller URLs are resolved correctly", {
   base <- "https://github.com/oneclick/rubyinstaller2/releases/download"
-  json <- sprintf(paste0(
-    '"browser_download_url": "%s/RubyInstaller-3.3.7-1/%s",'),
+  json <- sprintf(
+    '"browser_download_url": "%s/RubyInstaller-3.3.7-1/%s",',
     base,
-    c("rubyinstaller-devkit-3.3.7-1-x64.7z",
-      "rubyinstaller-devkit-3.3.7-1-x64.exe",
+    c("rubyinstaller-devkit-3.3.7-1-x64.exe",
       "rubyinstaller-3.3.7-1-x64.7z",
       "rubyinstaller-3.3.7-1-x64.exe"))
   json <- paste(json, collapse = "\n")
 
-  expect_match(ri_pick_asset(json),
-               "/rubyinstaller-3\\.3\\.7-1-x64\\.7z$")
-  expect_match(ri_pick_asset(json, devkit = TRUE),
-               "/rubyinstaller-devkit-3\\.3\\.7-1-x64\\.7z$")
+  # the plain .7z, never the .exe installers
+  expect_match(ri_pick_asset(json), "/rubyinstaller-3\\.3\\.7-1-x64\\.7z$")
   expect_error(ri_pick_asset('{"assets": []}'), "rubyinstaller.org")
+
+  # the pinned fallback for when api.github.com is unreachable
+  expect_equal(
+    ri_pinned_url("3.3.7-1"),
+    paste0(base, "/RubyInstaller-3.3.7-1/rubyinstaller-3.3.7-1-x64.7z"))
 })
 
 test_that("shell_cmd routes .bat/.cmd through cmd.exe on Windows", {

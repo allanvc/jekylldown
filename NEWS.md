@@ -1,3 +1,18 @@
+# jekylldown 0.1.17
+
+* `install_ruby()` no longer depends on `api.github.com` being
+  reachable: when the release lookup fails (that host is blocked on
+  some networks even where `github.com` works), a known-good pinned
+  RubyInstaller release is downloaded directly from `github.com`, with
+  a new `version` argument to pick a specific release; download
+  failures now explain the proxy/offline escape hatches.
+* `devkit = TRUE` fixed before it ever worked: upstream publishes no
+  portable `.7z` of the devkit variant, so the MSYS2 toolchain is now
+  added by running RubyInstaller's own `ridk install` after unpacking.
+* New GitHub Actions workflow: R CMD check on Linux and Windows, plus a
+  Windows end-to-end smoke test that runs `install_ruby()`, scaffolds a
+  site and builds it.
+
 # jekylldown 0.1.16
 
 * Windows support for the isolated toolchain: new `install_ruby()`

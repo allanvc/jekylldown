@@ -4,15 +4,22 @@
 \alias{install_ruby}
 \title{Install Ruby and Jekyll into jekylldown's isolated toolchain (Windows)}
 \usage{
-install_ruby(file = NULL, devkit = FALSE)
+install_ruby(file = NULL, devkit = FALSE, version = NULL)
 }
 \arguments{
 \item{file}{Optional path to an already-downloaded
 \verb{rubyinstaller-<version>-x64.7z}, for offline installs. Default
-\code{NULL} downloads the latest release from GitHub.}
+\code{NULL} downloads the latest release from GitHub. (The release
+lookup uses the GitHub API; on networks where \code{api.github.com} is
+unreachable, a known-good pinned release is downloaded directly
+from \code{github.com} instead.)}
 
-\item{devkit}{Also include the MSYS2 toolchain, needed only for gems
-that compile C extensions on install? Default \code{FALSE}.}
+\item{devkit}{Also set up the MSYS2 toolchain (via \verb{ridk install}),
+needed only for gems that compile C extensions on install?
+Default \code{FALSE}.}
+
+\item{version}{Optional RubyInstaller release to install instead of
+the latest, as tagged upstream (e.g. \code{"3.3.7-1"}).}
 }
 \value{
 The path to the installed \code{jekyll} command, invisibly.
@@ -34,8 +41,9 @@ Unpacking the \verb{.7z} archive needs the \pkg{archive} package
 Most gems jekylldown's themes use ship precompiled Windows binaries.
 If a \verb{gem install}/\code{\link[=bundle_install]{bundle_install()}} ever fails complaining about a
 missing compiler ("you have to install development tools first"),
-re-run with \code{devkit = TRUE} to get the larger archive that bundles the
-MSYS2 build tools.
+re-run with \code{devkit = TRUE}: after unpacking Ruby it runs
+RubyInstaller's \verb{ridk install} to add the MSYS2 build tools (a large
+extra download).
 
 On Linux and macOS install Ruby with your package manager instead (see
 the README's prerequisites); jekylldown picks it up from the \code{PATH}.

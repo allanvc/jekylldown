@@ -15,17 +15,24 @@
 #' Most gems jekylldown's themes use ship precompiled Windows binaries.
 #' If a `gem install`/[bundle_install()] ever fails complaining about a
 #' missing compiler ("you have to install development tools first"),
-#' re-run with `devkit = TRUE` to get the larger archive that bundles the
-#' MSYS2 build tools.
+#' re-run with `devkit = TRUE`: after unpacking Ruby it runs
+#' RubyInstaller's `ridk install` to add the MSYS2 build tools (a large
+#' extra download).
 #'
 #' On Linux and macOS install Ruby with your package manager instead (see
 #' the README's prerequisites); jekylldown picks it up from the `PATH`.
 #'
 #' @param file Optional path to an already-downloaded
 #'   `rubyinstaller-<version>-x64.7z`, for offline installs. Default
-#'   `NULL` downloads the latest release from GitHub.
-#' @param devkit Also include the MSYS2 toolchain, needed only for gems
-#'   that compile C extensions on install? Default `FALSE`.
+#'   `NULL` downloads the latest release from GitHub. (The release
+#'   lookup uses the GitHub API; on networks where `api.github.com` is
+#'   unreachable, a known-good pinned release is downloaded directly
+#'   from `github.com` instead.)
+#' @param devkit Also set up the MSYS2 toolchain (via `ridk install`),
+#'   needed only for gems that compile C extensions on install?
+#'   Default `FALSE`.
+#' @param version Optional RubyInstaller release to install instead of
+#'   the latest, as tagged upstream (e.g. `"3.3.7-1"`).
 #' @return The path to the installed `jekyll` command, invisibly.
 #' @examples
 #' \dontrun{
@@ -35,7 +42,7 @@
 #' install_ruby(file = "C:/Users/me/Downloads/rubyinstaller-3.3.7-1-x64.7z")
 #' }
 #' @export
-install_ruby <- function(file = NULL, devkit = FALSE) {
+install_ruby <- function(file = NULL, devkit = FALSE, version = NULL) {
   if (!identical(.Platform$OS.type, "windows")) {
     cli::cli_abort(c(
       "Automatic Ruby install is for Windows, which has no package
@@ -53,19 +60,25 @@ install_ruby <- function(file = NULL, devkit = FALSE) {
   }
 
   if (is.null(file)) {
-    api <- "https://api.github.com/repos/oneclick/rubyinstaller2/releases/latest"
-    release <- tryCatch(
-      paste(readLines(api, warn = FALSE), collapse = "\n"),
-      error = function(e) cli::cli_abort(
-        "Could not reach GitHub to find the latest RubyInstaller release
-         ({conditionMessage(e)}). Download the {.file .7z} archive from
-         {.url https://rubyinstaller.org/downloads/} yourself and pass it
-         as {.arg file}."))
-    url <- ri_pick_asset(release, devkit = devkit)
+    url <- if (!is.null(version)) {
+      ri_pinned_url(version)
+    } else {
+      ri_latest_url()
+    }
     file <- tempfile(fileext = ".7z")
     on.exit(unlink(file), add = TRUE)
     cli::cli_alert_info("Downloading {.url {url}} ...")
-    utils::download.file(url, file, mode = "wb", quiet = TRUE)
+    status <- tryCatch(
+      utils::download.file(url, file, mode = "wb", quiet = TRUE),
+      error = function(e) conditionMessage(e))
+    if (!identical(status, 0L)) {
+      cli::cli_abort(c(
+        "Could not download {.url {url}}
+         ({if (is.character(status)) status else paste('status', status)}).",
+        "i" = "Behind a proxy or firewall? Download the {.file .7z}
+               archive from {.url https://rubyinstaller.org/downloads/}
+               in your browser and pass its path as {.arg file}."))
+    }
   }
 
   exdir <- tempfile("ruby-install-")
@@ -82,6 +95,23 @@ install_ruby <- function(file = NULL, devkit = FALSE) {
   if (dir.exists(dest)) unlink(dest, recursive = TRUE)
   fs::dir_create(dirname(dest))
   fs::dir_copy(top, dest)
+
+  if (devkit) {
+    ridk <- find_cmd("ridk")
+    if (is.null(ridk)) {
+      cli::cli_abort("The archive did not contain the {.code ridk} command
+                      needed to set up the MSYS2 toolchain.")
+    }
+    cli::cli_alert_info("Installing the MSYS2 build toolchain (a large
+                         extra download) ...")
+    sc <- shell_cmd(ridk, c("install", "1", "2", "3"))
+    res <- processx::run(sc$cmd, sc$args, env = c("current", jd_env()),
+                         echo = TRUE, error_on_status = FALSE)
+    if (res$status != 0) {
+      cli::cli_abort("{.code ridk install} failed (exit status
+                      {res$status}).")
+    }
+  }
 
   gem <- find_cmd("gem")
   if (is.null(gem)) {
@@ -110,15 +140,39 @@ install_ruby <- function(file = NULL, devkit = FALSE) {
   invisible(find_cmd("jekyll"))
 }
 
-# Pick the portable .7z asset out of a rubyinstaller2 release JSON. The
-# devkit archives additionally bundle the MSYS2 toolchain that gems with
-# C extensions need at install time.
-ri_pick_asset <- function(release_json, devkit = FALSE) {
-  pat <- if (devkit) {
-    "https://[^\"]*/rubyinstaller-devkit-[0-9][^\"]*-x64[.]7z"
-  } else {
-    "https://[^\"]*/rubyinstaller-[0-9][^\"]*-x64[.]7z"
-  }
+# A recent RubyInstaller release known to work with jekylldown's themes,
+# used when the GitHub API is unreachable (some networks resolve
+# github.com, where the archives live, but block api.github.com).
+ri_fallback_version <- "3.3.7-1"
+
+ri_pinned_url <- function(version) {
+  sprintf(paste0("https://github.com/oneclick/rubyinstaller2/releases",
+                 "/download/RubyInstaller-%s/rubyinstaller-%s-x64.7z"),
+          version, version)
+}
+
+# The newest release's archive URL via the GitHub API, falling back to
+# the pinned release when the API cannot be reached.
+ri_latest_url <- function() {
+  api <- "https://api.github.com/repos/oneclick/rubyinstaller2/releases/latest"
+  release <- tryCatch(
+    paste(readLines(api, warn = FALSE), collapse = "\n"),
+    error = function(e) NULL)
+  if (!is.null(release)) return(ri_pick_asset(release))
+  cli::cli_warn(
+    "Could not reach the GitHub API to find the latest RubyInstaller
+     release; using the known-good RubyInstaller
+     {ri_fallback_version} instead (pass {.arg version} to choose
+     another one).")
+  ri_pinned_url(ri_fallback_version)
+}
+
+# Pick the portable .7z asset out of a rubyinstaller2 release JSON.
+# Only the plain archive exists as .7z upstream (the devkit variant
+# ships as an .exe installer only) -- the MSYS2 toolchain is added
+# afterwards with `ridk install`, see install_ruby(devkit = TRUE).
+ri_pick_asset <- function(release_json) {
+  pat <- "https://[^\"]*/rubyinstaller-[0-9][^\"]*-x64[.]7z"
   url <- regmatches(release_json, regexpr(pat, release_json))
   if (!length(url)) {
     cli::cli_abort(
