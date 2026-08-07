@@ -5,6 +5,7 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/allanvc/jekylldown/actions/workflows/R-CMD-check.yml/badge.svg)](https://github.com/allanvc/jekylldown/actions/workflows/R-CMD-check.yml)
 <!-- badges: end -->
 
 **jekylldown** does for [Jekyll](https://jekyllrb.com) what
@@ -70,7 +71,11 @@ there; deleting that one directory uninstalls everything. On networks
 where the GitHub API is blocked, a known-good pinned release is fetched
 directly from `github.com`; fully offline, download the `.7z` from
 [rubyinstaller.org](https://rubyinstaller.org/downloads/) and pass it as
-`file =`.
+`file =`. git is not required either: the GitHub-hosted theme templates
+(al-folio, Chirpy) fall back to a plain archive download when git is
+absent. The whole workflow — `install_ruby()`, `new_site()`,
+`build_site()`, `serve_site()` — runs on a Windows GitHub Actions runner
+on every push.
 
 ### Linux
 

@@ -50,7 +50,7 @@ library(jekylldown)
 migrate_hugo(
   from  = "~/path/to/my-hugo-site",   # blogdown/Hugo site (read-only)
   to    = "~/path/to/my-new-site",    # created; must not exist yet
-  theme = "al-folio",                 # cloned from GitHub (needs git + network)
+  theme = "al-folio",                 # fetched from GitHub (network needed)
   only_referenced = TRUE,             # skip static files nothing links to
   publications = "bib",               # the default; papers.bib from the DOIs (see below)
   theme_color = "red"                 # al-folio accent color (see below)

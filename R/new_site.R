@@ -7,10 +7,12 @@
 #' * `"minima"` (default) -- a minimal self-contained blog, generated
 #'   locally (no network needed);
 #' * `"al-folio"` -- the academic theme
-#'   (\url{https://github.com/alshedivat/al-folio}), cloned with git;
+#'   (\url{https://github.com/alshedivat/al-folio}), fetched from GitHub
+#'   (a shallow git clone when git is available, the template archive
+#'   otherwise -- git is not required);
 #' * `"chirpy"` -- the technical-blog theme
 #'   (\url{https://github.com/cotes2020/jekyll-theme-chirpy}): its starter
-#'   template is cloned with git and stripped of the upstream repo
+#'   template is fetched the same way and stripped of the upstream repo
 #'   tooling, keeping the GitHub Pages deploy workflow;
 #' * `"minimal-mistakes"` -- the general-purpose theme
 #'   (\url{https://github.com/mmistakes/minimal-mistakes}), generated
@@ -34,7 +36,7 @@
 #' # a minimal blog with the locally generated minima theme (no network)
 #' new_site("my-blog")
 #'
-#' # the al-folio academic theme, cloned from GitHub, starting empty
+#' # the al-folio academic theme, fetched from GitHub, starting empty
 #' new_site("my-site", theme = "al-folio", demo = FALSE)
 #'
 #' # the Chirpy starter, or a gem-based Minimal Mistakes site
@@ -177,23 +179,48 @@ scaffold_minimal_mistakes <- function(dir, title) {
                    file.path(dir, ".gitignore"))
 }
 
+# Fetch a theme template from GitHub: shallow git clone when git is
+# around (fast), otherwise the tarball of the default branch -- so a
+# machine without git (common on Windows) can still scaffold every
+# theme.
 clone_template <- function(url, dir, label) {
   git <- Sys.which("git")
-  if (!nzchar(git)) {
-    cli::cli_abort("The {label} template is cloned with git, which was
-                    not found.")
+  if (nzchar(git)) {
+    cli::cli_alert_info("Cloning {label} (shallow) ...")
+    res <- processx::run(
+      git, c("clone", "--depth", "1", url, dir),
+      echo = FALSE, error_on_status = FALSE
+    )
+    if (res$status == 0) {
+      # It is a template, not a fork: detach it from upstream history.
+      unlink(file.path(dir, ".git"), recursive = TRUE, force = TRUE)
+      return(invisible(dir))
+    }
+    cli::cli_warn("Cloning {label} failed
+                   ({sub('\\n.*$', '', trimws(res$stderr))}); downloading
+                   the template archive instead.")
   }
-  cli::cli_alert_info("Cloning {label} (shallow) ...")
-  res <- processx::run(
-    git, c("clone", "--depth", "1", url, dir),
-    echo = FALSE, error_on_status = FALSE
-  )
-  if (res$status != 0) {
-    cli::cli_abort(c("Cloning {label} failed.",
-                     "x" = "{sub('\\n.*$', '', trimws(res$stderr))}"))
+
+  tarball <- paste0(sub("[.]git$", "", url), "/tarball/HEAD")
+  cli::cli_alert_info("Downloading {label} ...")
+  tmp <- tempfile(fileext = ".tar.gz")
+  on.exit(unlink(tmp), add = TRUE)
+  status <- tryCatch(
+    utils::download.file(tarball, tmp, mode = "wb", quiet = TRUE),
+    error = function(e) conditionMessage(e))
+  if (!identical(status, 0L)) {
+    cli::cli_abort(
+      "Could not download {label} from {.url {tarball}}
+       ({if (is.character(status)) status else paste('status', status)}).")
   }
-  # It is a template, not a fork: detach it from the upstream history.
-  unlink(file.path(dir, ".git"), recursive = TRUE, force = TRUE)
+  exdir <- tempfile("template-")
+  on.exit(unlink(exdir, recursive = TRUE), add = TRUE)
+  utils::untar(tmp, exdir = exdir)
+  top <- list.dirs(exdir, recursive = FALSE)
+  if (length(top) != 1) {
+    cli::cli_abort("Unexpected archive layout for the {label} template.")
+  }
+  fs::dir_copy(top, dir)
   invisible(dir)
 }
 

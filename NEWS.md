@@ -1,3 +1,15 @@
+# jekylldown 0.2.1
+
+* `new_site()` no longer requires git for the GitHub-hosted themes
+  (al-folio and the Chirpy starter): when git is missing -- common on
+  Windows -- the template is downloaded as a plain archive of the
+  default branch instead, and a failed clone falls back to the same
+  download.
+* Documentation refreshed for Windows: a CI badge in the README, the
+  Windows setup section notes that neither git nor admin rights are
+  needed to scaffold and build, and the "cloned with git" wording is
+  gone from `?new_site` and the vignettes.
+
 # jekylldown 0.2.0
 
 * `serve_site()` works on Windows: the build command was assembled as a

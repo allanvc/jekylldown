@@ -43,10 +43,12 @@ in \verb{assets/img/posts/}. Four themes are supported first-class:
 \item \code{"minima"} (default) -- a minimal self-contained blog, generated
 locally (no network needed);
 \item \code{"al-folio"} -- the academic theme
-(\url{https://github.com/alshedivat/al-folio}), cloned with git;
+(\url{https://github.com/alshedivat/al-folio}), fetched from GitHub
+(a shallow git clone when git is available, the template archive
+otherwise -- git is not required);
 \item \code{"chirpy"} -- the technical-blog theme
 (\url{https://github.com/cotes2020/jekyll-theme-chirpy}): its starter
-template is cloned with git and stripped of the upstream repo
+template is fetched the same way and stripped of the upstream repo
 tooling, keeping the GitHub Pages deploy workflow;
 \item \code{"minimal-mistakes"} -- the general-purpose theme
 (\url{https://github.com/mmistakes/minimal-mistakes}), generated
@@ -58,7 +60,7 @@ locally as a gem-based site (see \code{\link[=set_theme_skin]{set_theme_skin()}}
 # a minimal blog with the locally generated minima theme (no network)
 new_site("my-blog")
 
-# the al-folio academic theme, cloned from GitHub, starting empty
+# the al-folio academic theme, fetched from GitHub, starting empty
 new_site("my-site", theme = "al-folio", demo = FALSE)
 
 # the Chirpy starter, or a gem-based Minimal Mistakes site

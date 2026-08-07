@@ -56,10 +56,10 @@ Quarto, and the current site if you are in one. Two important notes:
 # a minimal blog (minima theme, generated locally, no network needed)
 new_site("my-blog")
 
-# the al-folio academic theme, cloned from GitHub, starting empty
+# the al-folio academic theme, fetched from GitHub, starting empty
 new_site("my-site", theme = "al-folio", demo = FALSE)
 
-# the Chirpy technical-blog theme (its starter template, cloned and
+# the Chirpy technical-blog theme (its starter template, fetched and
 # stripped of upstream repo tooling)
 new_site("my-blog", theme = "chirpy", title = "My blog")
 
