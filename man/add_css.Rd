@@ -4,16 +4,18 @@
 \alias{add_css}
 \title{Add (or remove) a managed block of custom CSS}
 \usage{
-add_css(dir = ".", css, id = "custom")
+add_css(css, id = "custom", dir = ".")
 }
 \arguments{
-\item{dir}{Site root.}
-
 \item{css}{Character vector of CSS lines. \code{character(0)} (or \code{""})
 removes the block with this \code{id}.}
 
 \item{id}{Identifier of the block (lowercase letters, digits, \code{-},
 \verb{_}), so independent customizations do not overwrite each other.}
+
+\item{dir}{Site root, or any directory inside it -- like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
+default \code{"."} works from anywhere in the site's project.}
 }
 \value{
 Invisibly, the path of the stylesheet written.
@@ -28,11 +30,13 @@ has (or can get) a local \code{main.scss}.
 }
 \examples{
 \dontrun{
-add_css("my-site", c(
-  ".profile img { border-radius: 50\%; }"
-), id = "round-avatar")
+add_css(".profile img { border-radius: 50\%; }", id = "round-avatar")
+
+# from outside the site:
+add_css(".profile img { border-radius: 50\%; }", id = "round-avatar",
+        dir = "my-site")
 
 # remove it later
-add_css("my-site", character(0), id = "round-avatar")
+add_css(character(0), id = "round-avatar")
 }
 }

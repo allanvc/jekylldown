@@ -1,3 +1,52 @@
+# jekylldown 0.1.15
+
+* `set_element_style("socials", size = ...)` now actually resizes the
+  icons. The mapped selectors were losing to the themes' own,
+  more specific rules (al-folio nests `.contact-icons` under `.social`;
+  Chirpy nests `.sidebar-bottom` under `#sidebar`) -- the maps now
+  match the themes' specificity. On top of the `font-size`, the sizing
+  writes companion rules for what a font size cannot reach: al-folio's
+  image icons, minima's fixed 16px SVG icons, and Chirpy's fixed-size
+  circular buttons all track the requested size now.
+
+# jekylldown 0.1.14
+
+* Breaking change (ergonomics): the customization functions now take
+  what you are setting as the *first* argument and the site as the
+  *last* -- so calls like `set_element_style("socials", size = "3rem")`
+  and `set_theme_color("red")` work directly from inside the site's
+  project. New signatures:
+  `set_theme_color(color, dir = ".")`,
+  `set_theme_style(..., dir = ".")`,
+  `set_theme_skin(skin, dir = ".")`,
+  `set_theme_font(family, size, headings, code, google, dir = ".")`,
+  `set_element_style(element, ..., dir = ".")`,
+  `add_css(css, id, dir = ".")`.
+  From outside a site, pass the location by name:
+  `set_theme_color("red", dir = "my-site")`.
+* Calls in the old style (site path first) do not fail obscurely: when
+  the first argument is an existing site directory, the functions abort
+  with a message pointing at the `dir` argument.
+
+# jekylldown 0.1.13
+
+* Undo for the accent color: `set_theme_color(dir, NULL)` removes the
+  override and returns to the theme default. Deleting the site-local
+  stylesheet (`assets/css/main.scss`) remains the documented way to
+  drop every customization at once.
+* New `"socials"` element in `set_element_style()`'s per-theme maps
+  (al-folio's about-page icon row, Chirpy's sidebar icons, Minimal
+  Mistakes' author links, minima's footer icons) -- e.g.
+  `set_element_style(site, "socials", size = "2rem")`.
+* Calling any of these (or `build_site()`) from outside a site now
+  aborts with a message that tells you to pass the site's path via
+  `dir`, instead of a bare "no _config.yml" error.
+* All customization functions (`set_theme_color()`, `set_theme_style()`,
+  `set_theme_skin()`, `set_theme_font()`, `set_element_style()`,
+  `add_css()`, `add_mathjax()`) now find the site root from any
+  subdirectory, exactly like `build_site()` -- running them from inside
+  the site's RStudio project just works with the default `dir = "."`.
+
 # jekylldown 0.1.12
 
 * The blank-Viewer race, actually fixed: waiting for a TCP connection

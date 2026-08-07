@@ -144,22 +144,30 @@ Declarative, idempotent, dark-mode aware — no hand-written CSS in theme
 files. Four layers, most robust first:
 
 ```{r}
+# run from anywhere inside the site's project (they find the site root
+# like build_site()); from outside, add dir = "mysite"
+
 # 1. the theme's own CSS variables (al-folio and Chirpy)
-set_theme_style("mysite", accent = "red",
+set_theme_style(accent = "red",
                 background = c(light = "#fffdf7", dark = "#1c1c1d"))
 
 # Minimal Mistakes styles through compiled skins instead:
-set_theme_skin("mysite", "dark")
+set_theme_skin("dark")
 
 # 2. fonts (Google Fonts inlined) and base size
-set_theme_font("mysite", family = "Lora", size = "17px")
+set_theme_font("Lora", size = "17px")
 
 # 3. one semantic element at a time (the fragile layer -- see its docs)
-set_element_style("mysite", "navbar", background = "#222", color = "white")
+set_element_style("navbar", background = "#222", color = "white")
+set_element_style("socials", size = "2rem")   # social icon row
 
 # 4. escape hatch: free-form CSS in a managed, removable block
-add_css("mysite", ".profile img { border-radius: 50%; }", id = "avatar")
+add_css(".profile img { border-radius: 50%; }", id = "avatar")
 ```
+
+To undo the accent, call `set_theme_color(NULL)`; deleting the
+site-local stylesheet (`assets/css/main.scss`) drops every
+customization at once.
 
 ## Migrating from blogdown/Hugo
 

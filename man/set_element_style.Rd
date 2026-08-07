@@ -5,17 +5,15 @@
 \title{Style one semantic element of the theme}
 \usage{
 set_element_style(
-  dir = ".",
   element,
   color = NULL,
   background = NULL,
   size = NULL,
-  ...
+  ...,
+  dir = "."
 )
 }
 \arguments{
-\item{dir}{Site root.}
-
 \item{element}{One of the element names above.}
 
 \item{color, background, size}{Text color, background color and
@@ -24,6 +22,10 @@ set_element_style(
 
 \item{...}{Further CSS properties as named arguments, with \verb{_} for
 \code{-}: e.g. \code{font_weight = "600"}, \code{border_bottom = "none"}.}
+
+\item{dir}{Site root, or any directory inside it -- like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
+default \code{"."} works from anywhere in the site's project.}
 }
 \value{
 Invisibly, the CSS selector styled.
@@ -36,6 +38,9 @@ in a managed block (one per element; re-running replaces it).
 }
 \details{
 Elements: \code{"navbar"}, \code{"brand"} (the site name in the navbar),
+\code{"socials"} (the social icon row -- e.g. its \code{size}; the sizing also
+covers what \code{font-size} alone would miss: image and SVG icons, and
+Chirpy's circular buttons, all fixed-size in the themes),
 \code{"footer"}, \code{"headings"}, \code{"post_title"}, \code{"links"}, \code{"code"},
 \code{"buttons"}.
 }
@@ -53,9 +58,12 @@ middle ground before dropping to \code{\link[=add_css]{add_css()}}.
 
 \examples{
 \dontrun{
-set_element_style("my-site", "navbar",
-                  background = "#222222", color = "white")
-set_element_style("my-site", "headings", color = "red",
-                  font_weight = "600")
+# from anywhere inside the site's project:
+set_element_style("navbar", background = "#222222", color = "white")
+set_element_style("headings", color = "red", font_weight = "600")
+set_element_style("socials", size = "2rem")
+
+# from outside, name the site:
+set_element_style("navbar", background = "#222222", dir = "my-site")
 }
 }

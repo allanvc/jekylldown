@@ -4,12 +4,14 @@
 \alias{set_theme_style}
 \title{Customize theme colors through the theme's own CSS variables}
 \usage{
-set_theme_style(dir = ".", ...)
+set_theme_style(..., dir = ".")
 }
 \arguments{
-\item{dir}{Site root.}
-
 \item{...}{Named style options from the list above.}
+
+\item{dir}{Site root, or any directory inside it -- like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
+default \code{"."} works from anywhere in the site's project.}
 }
 \value{
 Invisibly, the named list of CSS variables written.
@@ -45,10 +47,14 @@ This needs the theme gems: run \code{\link[=bundle_install]{bundle_install()}} o
 }
 \examples{
 \dontrun{
-set_theme_style("my-site",
+# from anywhere inside the site's project:
+set_theme_style(
   accent = "red",
   footer_background = "#222222",
   background = c(light = "#fffdf7", dark = "#1c1c1d")
 )
+
+# from outside, name the site:
+set_theme_style(accent = "red", dir = "my-site")
 }
 }

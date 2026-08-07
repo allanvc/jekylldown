@@ -5,17 +5,15 @@
 \title{Customize the site fonts}
 \usage{
 set_theme_font(
-  dir = ".",
   family = NULL,
   size = NULL,
   headings = NULL,
   code = NULL,
-  google = TRUE
+  google = TRUE,
+  dir = "."
 )
 }
 \arguments{
-\item{dir}{Site root.}
-
 \item{family}{Body font family (e.g. \code{"Lora"}). With \code{google = TRUE}
 the face is fetched from Google Fonts at call time (needs network);
 otherwise it must be available on the visitor's system.}
@@ -30,6 +28,10 @@ behavior -- i.e. unchanged unless given).}
 
 \item{google}{Fetch the given families from Google Fonts and inline
 their \verb{@font-face} rules? Default \code{TRUE}.}
+
+\item{dir}{Site root, or any directory inside it -- like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
+default \code{"."} works from anywhere in the site's project.}
 }
 \value{
 Invisibly, the path of the stylesheet written.
@@ -43,7 +45,8 @@ replaces the previous override.
 }
 \examples{
 \dontrun{
-set_theme_font("my-site", family = "Lora", size = "17px")
-set_theme_font("my-site", code = "JetBrains Mono")
+set_theme_font("Lora", size = "17px")     # from inside the site
+set_theme_font(code = "JetBrains Mono")
+set_theme_font("Lora", dir = "my-site")   # from outside
 }
 }

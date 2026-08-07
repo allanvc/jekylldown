@@ -73,20 +73,26 @@ chirpy_style_vars <- c(
 #'
 #' This needs the theme gems: run [bundle_install()] once first.
 #'
-#' @param dir Site root.
 #' @param ... Named style options from the list above.
+#' @param dir Site root, or any directory inside it -- like
+#'   [build_site()], the function climbs to the enclosing site, so the
+#'   default `"."` works from anywhere in the site's project.
 #' @return Invisibly, the named list of CSS variables written.
 #' @examples
 #' \dontrun{
-#' set_theme_style("my-site",
+#' # from anywhere inside the site's project:
+#' set_theme_style(
 #'   accent = "red",
 #'   footer_background = "#222222",
 #'   background = c(light = "#fffdf7", dark = "#1c1c1d")
 #' )
+#'
+#' # from outside, name the site:
+#' set_theme_style(accent = "red", dir = "my-site")
 #' }
 #' @export
-set_theme_style <- function(dir = ".", ...) {
-  root <- normalizePath(dir, mustWork = TRUE)
+set_theme_style <- function(..., dir = ".") {
+  root <- site_root(dir)
   theme <- site_theme(root)
   if (theme %in% c("minimal-mistakes", "minima")) {
     cli::cli_abort(c(
@@ -102,6 +108,10 @@ set_theme_style <- function(dir = ".", ...) {
   vars_map <- if (theme == "chirpy") chirpy_style_vars else al_folio_style_vars
 
   opts <- list(...)
+  nms <- if (is.null(names(opts))) rep("", length(opts)) else names(opts)
+  if (any(!nzchar(nms))) {
+    abort_if_site_path(opts[[which(!nzchar(nms))[1]]], "set_theme_style")
+  }
   if (!length(opts) || is.null(names(opts)) || any(!nzchar(names(opts)))) {
     cli::cli_abort(c("Pass named style options.",
                      "i" = "Available: {.val {names(vars_map)}}."))
@@ -198,16 +208,20 @@ chirpy_style_block <- function(opts, vars_map) {
 #' `"aqua"`, `"contrast"`, `"dark"`, `"dirt"`, `"mint"`, `"neon"`,
 #' `"plum"`, `"sunrise"`, ...).
 #'
-#' @param dir Site root.
 #' @param skin Skin name.
+#' @param dir Site root, or any directory inside it -- like
+#'   [build_site()], the function climbs to the enclosing site, so the
+#'   default `"."` works from anywhere in the site's project.
 #' @return Invisibly, the skin set.
 #' @examples
 #' \dontrun{
-#' set_theme_skin("my-site", "dark")
+#' set_theme_skin("dark")                     # from inside the site
+#' set_theme_skin("dark", dir = "my-site")    # from outside
 #' }
 #' @export
-set_theme_skin <- function(dir = ".", skin) {
-  root <- normalizePath(dir, mustWork = TRUE)
+set_theme_skin <- function(skin, dir = ".") {
+  abort_if_site_path(skin, "set_theme_skin")
+  root <- site_root(dir)
   theme <- site_theme(root)
   if (theme != "minimal-mistakes") {
     cli::cli_abort("Skins are a Minimal Mistakes feature; this site uses
@@ -251,7 +265,6 @@ mm_skins <- function(root) {
 #' `@import`), followed by `font-family`/`font-size` overrides. Re-running
 #' replaces the previous override.
 #'
-#' @param dir Site root.
 #' @param family Body font family (e.g. `"Lora"`). With `google = TRUE`
 #'   the face is fetched from Google Fonts at call time (needs network);
 #'   otherwise it must be available on the visitor's system.
@@ -262,16 +275,22 @@ mm_skins <- function(root) {
 #' @param code Font family for code (`code`, `pre`, `kbd`, `samp`).
 #' @param google Fetch the given families from Google Fonts and inline
 #'   their `@font-face` rules? Default `TRUE`.
+#' @param dir Site root, or any directory inside it -- like
+#'   [build_site()], the function climbs to the enclosing site, so the
+#'   default `"."` works from anywhere in the site's project.
 #' @return Invisibly, the path of the stylesheet written.
 #' @examples
 #' \dontrun{
-#' set_theme_font("my-site", family = "Lora", size = "17px")
-#' set_theme_font("my-site", code = "JetBrains Mono")
+#' set_theme_font("Lora", size = "17px")     # from inside the site
+#' set_theme_font(code = "JetBrains Mono")
+#' set_theme_font("Lora", dir = "my-site")   # from outside
 #' }
 #' @export
-set_theme_font <- function(dir = ".", family = NULL, size = NULL,
-                           headings = NULL, code = NULL, google = TRUE) {
-  root <- normalizePath(dir, mustWork = TRUE)
+set_theme_font <- function(family = NULL, size = NULL,
+                           headings = NULL, code = NULL, google = TRUE,
+                           dir = ".") {
+  abort_if_site_path(family, "set_theme_font")
+  root <- site_root(dir)
   if (is.null(family) && is.null(size) && is.null(headings) &&
       is.null(code)) {
     cli::cli_abort("Nothing to set: pass {.arg family}, {.arg size},
@@ -331,6 +350,9 @@ set_theme_font <- function(dir = ".", family = NULL, size = NULL,
 #' in a managed block (one per element; re-running replaces it).
 #'
 #' Elements: `"navbar"`, `"brand"` (the site name in the navbar),
+#' `"socials"` (the social icon row -- e.g. its `size`; the sizing also
+#' covers what `font-size` alone would miss: image and SVG icons, and
+#' Chirpy's circular buttons, all fixed-size in the themes),
 #' `"footer"`, `"headings"`, `"post_title"`, `"links"`, `"code"`,
 #' `"buttons"`.
 #'
@@ -344,25 +366,32 @@ set_theme_font <- function(dir = ".", family = NULL, size = NULL,
 #' whenever a CSS variable covers your case; treat this function as the
 #' middle ground before dropping to [add_css()].
 #'
-#' @param dir Site root.
 #' @param element One of the element names above.
 #' @param color,background,size Text color, background color and
 #'   `font-size` for the element. Colors accept theme palette names,
 #'   `#hex`, or any CSS color.
 #' @param ... Further CSS properties as named arguments, with `_` for
 #'   `-`: e.g. `font_weight = "600"`, `border_bottom = "none"`.
+#' @param dir Site root, or any directory inside it -- like
+#'   [build_site()], the function climbs to the enclosing site, so the
+#'   default `"."` works from anywhere in the site's project.
 #' @return Invisibly, the CSS selector styled.
 #' @examples
 #' \dontrun{
-#' set_element_style("my-site", "navbar",
-#'                   background = "#222222", color = "white")
-#' set_element_style("my-site", "headings", color = "red",
-#'                   font_weight = "600")
+#' # from anywhere inside the site's project:
+#' set_element_style("navbar", background = "#222222", color = "white")
+#' set_element_style("headings", color = "red", font_weight = "600")
+#' set_element_style("socials", size = "2rem")
+#'
+#' # from outside, name the site:
+#' set_element_style("navbar", background = "#222222", dir = "my-site")
 #' }
 #' @export
-set_element_style <- function(dir = ".", element, color = NULL,
-                              background = NULL, size = NULL, ...) {
-  root <- normalizePath(dir, mustWork = TRUE)
+set_element_style <- function(element, color = NULL,
+                              background = NULL, size = NULL, ...,
+                              dir = ".") {
+  abort_if_site_path(element, "set_element_style")
+  root <- site_root(dir)
   map <- jd_element_map(site_theme(root))
   element <- match.arg(element, names(map))
   selector <- map[[element]]
@@ -395,11 +424,16 @@ set_element_style <- function(dir = ".", element, color = NULL,
   }
 
   main <- require_site_css(root)
+  block <- c(sprintf("%s {", selector), props, "}")
+  if (element == "socials" && !is.null(size)) {
+    block <- c(block,
+               socials_size_extra(site_theme(root), selector, size))
+  }
   append_marked_block(
     main,
     sprintf("/* >>> jekylldown element style: %s (generated) */", element),
     sprintf("/* <<< jekylldown element style: %s */", element),
-    c(sprintf("%s {", selector), props, "}"))
+    block)
   cli::cli_alert_success(
     "{.val {element}} ({.code {selector}}) styled in
      {.file {basename(main)}}.")
@@ -415,24 +449,29 @@ set_element_style <- function(dir = ".", element, color = NULL,
 #' edits scattered through theme files. Works with any theme whose site
 #' has (or can get) a local `main.scss`.
 #'
-#' @param dir Site root.
 #' @param css Character vector of CSS lines. `character(0)` (or `""`)
 #'   removes the block with this `id`.
 #' @param id Identifier of the block (lowercase letters, digits, `-`,
 #'   `_`), so independent customizations do not overwrite each other.
+#' @param dir Site root, or any directory inside it -- like
+#'   [build_site()], the function climbs to the enclosing site, so the
+#'   default `"."` works from anywhere in the site's project.
 #' @return Invisibly, the path of the stylesheet written.
 #' @examples
 #' \dontrun{
-#' add_css("my-site", c(
-#'   ".profile img { border-radius: 50%; }"
-#' ), id = "round-avatar")
+#' add_css(".profile img { border-radius: 50%; }", id = "round-avatar")
+#'
+#' # from outside the site:
+#' add_css(".profile img { border-radius: 50%; }", id = "round-avatar",
+#'         dir = "my-site")
 #'
 #' # remove it later
-#' add_css("my-site", character(0), id = "round-avatar")
+#' add_css(character(0), id = "round-avatar")
 #' }
 #' @export
-add_css <- function(dir = ".", css, id = "custom") {
-  root <- normalizePath(dir, mustWork = TRUE)
+add_css <- function(css, id = "custom", dir = ".") {
+  abort_if_site_path(css, "add_css")
+  root <- site_root(dir)
   if (!grepl("^[a-z0-9_-]+$", id)) {
     cli::cli_abort("{.arg id} must match {.code [a-z0-9_-]+}.")
   }
@@ -519,6 +558,7 @@ jd_element_map <- function(theme) {
   switch(theme,
     "minima" = list(
       navbar     = ".site-header",
+      socials    = ".social-media-list",
       brand      = ".site-title",
       footer     = ".site-footer",
       headings   = "h1, h2, h3, h4, h5, h6",
@@ -529,6 +569,7 @@ jd_element_map <- function(theme) {
     ),
     "chirpy" = list(
       navbar     = "#topbar",
+      socials    = "#sidebar .sidebar-bottom",
       sidebar    = "#sidebar",
       brand      = ".site-title",
       footer     = "footer",
@@ -540,6 +581,7 @@ jd_element_map <- function(theme) {
     ),
     "minimal-mistakes" = list(
       navbar     = ".masthead",
+      socials    = ".author__urls",
       brand      = ".site-title",
       footer     = ".page__footer",
       headings   = "h1, h2, h3, h4, h5, h6",
@@ -550,6 +592,7 @@ jd_element_map <- function(theme) {
     ),
     list(
       navbar     = ".navbar",
+      socials    = ".social .contact-icons",
       brand      = ".navbar-brand",
       footer     = "footer",
       headings   = "h1, h2, h3, h4, h5, h6",
@@ -577,6 +620,36 @@ theme_sass_text <- function(root, gem_glob) {
 
 # Is (the first simple piece of) a selector mentioned in the theme's sass?
 # The site-local _sass (when present) is authoritative; otherwise the
+# font-size alone does not resize every theme's social icons: al-folio
+# allows image icons with a fixed width, minima's are 16px SVGs, and
+# Chirpy wraps each icon in a fixed-size circular button. These
+# companion rules make all of them track the requested size.
+socials_size_extra <- function(theme, selector, size) {
+  switch(theme,
+    "minimal-mistakes" = character(0),
+    "minima" = c(
+      sprintf("%s .svg-icon {", selector),
+      "  width: 1em;",
+      "  height: 1em;",
+      "}"),
+    "chirpy" = c(
+      # the theme's buttons are 1.75rem circles around ~1rem icons;
+      # keep that padding while scaling with the requested size
+      sprintf("%s a,", selector),
+      sprintf("%s #mode-toggle {", selector),
+      sprintf("  width: calc(%s + 0.75rem);", size),
+      sprintf("  height: calc(%s + 0.75rem);", size),
+      "}",
+      sprintf("%s i {", selector),
+      sprintf("  line-height: calc(%s + 0.75rem);", size),
+      "}"),
+    # al-folio, and unknown themes (which use the al-folio map)
+    c(sprintf("%s a img {", selector),
+      "  width: 0.8em;",
+      "  height: 0.8em;",
+      "}"))
+}
+
 # installed theme gems are checked. NA when there is nothing to check
 # (validation skipped).
 selector_in_theme <- function(root, selector) {
@@ -641,7 +714,9 @@ fetch_google_font_css <- function(family) {
 #' for math, so the v2 bundle is loaded where jekylldown injects the
 #' script itself; al-folio and Chirpy ship their own MathJax setups.
 #'
-#' @param dir Site root.
+#' @param dir Site root, or any directory inside it -- like
+#'   [build_site()], the function climbs to the enclosing site, so the
+#'   default `"."` works from anywhere in the site's project.
 #' @return Invisibly, a short description of what was changed.
 #' @examples
 #' \dontrun{
@@ -649,7 +724,7 @@ fetch_google_font_css <- function(family) {
 #' }
 #' @export
 add_mathjax <- function(dir = ".") {
-  root <- normalizePath(dir, mustWork = TRUE)
+  root <- site_root(dir)
   theme <- site_theme(root)
   config <- file.path(root, "_config.yml")
   mathjax2 <- paste0("https://cdn.jsdelivr.net/npm/mathjax@2.7.9/",

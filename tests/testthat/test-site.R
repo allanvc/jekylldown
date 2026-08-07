@@ -405,3 +405,10 @@ test_that("wait_for_server detects a live port and a dead worker", {
   Sys.sleep(0.3)
   expect_false(jekylldown:::wait_for_server(port, px, timeout = 5))
 })
+
+test_that("site_root() guides the user when called outside a site", {
+  not_a_site <- withr::local_tempdir()
+  expect_error(site_root(not_a_site), "pass its\\s+path explicitly")
+  expect_error(site_root(file.path(not_a_site, "nope")),
+               "does not exist")
+})

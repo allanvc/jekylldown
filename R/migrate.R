@@ -288,10 +288,10 @@ migrate_hugo <- function(from, to, theme = c("minima", "al-folio",
     if (theme == "minimal-mistakes") {
       cli::cli_warn("Minimal Mistakes has no accent color variable --
                      ignoring {.arg theme_color}; pick a skin with
-                     {.code set_theme_skin(\"{to}\", ...)} instead.")
+                     {.code set_theme_skin(..., dir = \"{to}\")} instead.")
     } else {
       color_pending <- !tryCatch({
-        set_theme_color(root, theme_color)
+        set_theme_color(theme_color, dir = root)
         TRUE
       }, error = function(e) FALSE)
     }
@@ -338,7 +338,8 @@ migrate_hugo <- function(from, to, theme = c("minima", "al-folio",
   }
   if (color_pending) {
     cli::cli_alert_info(
-      "Theme color: run {.code set_theme_color(\"{to}\", \"{theme_color}\")}
+      "Theme color: run
+       {.code set_theme_color(\"{theme_color}\", dir = \"{to}\")}
        after {.code bundle_install(\"{to}\")} (theme gems not installed yet).")
   }
   if (length(report$skipped)) {

@@ -19,22 +19,50 @@
 #' (the link color); on Minimal Mistakes it points you at
 #' [set_theme_skin()] instead.
 #'
-#' @param dir Site root.
+#' @section Going back to the theme's defaults:
+#' `set_theme_color(NULL)` removes the color override. To drop
+#' *every* jekylldown customization at once (colors, fonts, element
+#' styles, custom CSS), delete the site-local stylesheet
+#' (`assets/css/main.scss`; `assets/main.scss` on minima) -- it only
+#' holds the theme's copy plus the managed blocks, and is recreated on
+#' the next customization call.
+#'
 #' @param color A named theme color (e.g. `"red"`, `"blue"`, `"green"`,
 #'   `"cyan"`, `"purple"`, `"pink"`, `"orange"`, `"yellow"`) or a CSS hex
 #'   value like `"#b71c1c"`.
+#' @param dir Site root, or any directory inside it -- like
+#'   [build_site()], the function climbs to the enclosing site, so the
+#'   default `"."` works from anywhere in the site's project.
 #' @return The hex color applied, invisibly.
 #' @examples
 #' \dontrun{
-#' set_theme_color("my-site", "red")
-#' set_theme_color("my-site", "#0057b7")
+#' # from anywhere inside the site's project:
+#' set_theme_color("red")
+#' set_theme_color("#0057b7")
+#' set_theme_color(NULL)                      # back to the theme default
+#'
+#' # from outside, name the site:
+#' set_theme_color("red", dir = "my-site")
 #' }
 #' @export
-set_theme_color <- function(dir = ".", color) {
-  root <- normalizePath(dir, mustWork = TRUE)
+set_theme_color <- function(color = NULL, dir = ".") {
+  abort_if_site_path(color, "set_theme_color")
+  root <- site_root(dir)
   theme <- site_theme(root)
+  if (is.null(color)) {
+    main <- site_css_file(root)
+    if (!is.null(main)) {
+      remove_marked_block(
+        main,
+        "/* >>> jekylldown theme color (generated; change via set_theme_color) */",
+        "/* <<< jekylldown theme color */")
+    }
+    cli::cli_alert_success("Color override removed -- back to the theme's
+                            default accent.")
+    return(invisible(NULL))
+  }
   if (theme == "chirpy") {
-    set_theme_style(root, accent = color)
+    set_theme_style(accent = color, dir = root)
     return(invisible(color))
   }
   if (theme == "minimal-mistakes") {

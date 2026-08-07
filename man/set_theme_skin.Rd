@@ -4,12 +4,14 @@
 \alias{set_theme_skin}
 \title{Pick a Minimal Mistakes skin}
 \usage{
-set_theme_skin(dir = ".", skin)
+set_theme_skin(skin, dir = ".")
 }
 \arguments{
-\item{dir}{Site root.}
-
 \item{skin}{Skin name.}
+
+\item{dir}{Site root, or any directory inside it -- like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
+default \code{"."} works from anywhere in the site's project.}
 }
 \value{
 Invisibly, the skin set.
@@ -24,6 +26,7 @@ the installed theme gem when available (\code{"default"}, \code{"air"},
 }
 \examples{
 \dontrun{
-set_theme_skin("my-site", "dark")
+set_theme_skin("dark")                     # from inside the site
+set_theme_skin("dark", dir = "my-site")    # from outside
 }
 }

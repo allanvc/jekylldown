@@ -181,9 +181,10 @@ manual item the report left us. Academic kept her portrait as author
 data, so we copy it in and point Chirpy's `avatar:` at it:
 
 ```{r}
-set_theme_style("julia-chirpy",
+set_theme_style(
   accent = "#8e24aa",   # a nod to Academic's purple
-  sidebar_background = c(light = "#f6eef8", dark = "#1d1428"))
+  sidebar_background = c(light = "#f6eef8", dark = "#1d1428"),
+  dir = "julia-chirpy")
 ```
 
 ```{r, eval = FALSE}
@@ -200,8 +201,8 @@ restyles through compiled skins, plus a Google Font inlined by
 `set_theme_font()`:
 
 ```{r}
-set_theme_skin("jenny-mm", "dark")
-set_theme_font("jenny-mm", family = "Fira Sans")
+set_theme_skin("dark", dir = "jenny-mm")
+set_theme_font("Fira Sans", dir = "jenny-mm")
 ```
 
 ![As migrated (left) and with the dark skin and Fira Sans (right)](gallery-jenny-styled.png)
@@ -210,18 +211,19 @@ set_theme_font("jenny-mm", family = "Fira Sans")
 scheme, and a free-form touch in a managed block:
 
 ```{r}
-set_theme_font("allan-alfolio", family = "Lora", size = "17px")
-set_theme_style("allan-alfolio",
-  background = c(light = "#fffdf7", dark = "#1c1c1d"))
-add_css("allan-alfolio", ".profile img { border-radius: 50%; }",
-        id = "round-avatar")
+set_theme_font("Lora", size = "17px", dir = "allan-alfolio")
+set_theme_style(
+  background = c(light = "#fffdf7", dark = "#1c1c1d"),
+  dir = "allan-alfolio")
+add_css(".profile img { border-radius: 50%; }",
+        id = "round-avatar", dir = "allan-alfolio")
 ```
 
 ![As migrated (left) and after fonts, background and the rounded portrait (right)](gallery-allan-styled.png)
 
 Every one of these blocks is idempotent — re-run with other values to
-change your mind, or remove it (e.g. `add_css(site, character(0),
-id = "round-avatar")`). On minima the same `set_theme_font()`,
+change your mind, or remove it (e.g. `add_css(character(0),
+id = "round-avatar", dir = site)`). On minima the same `set_theme_font()`,
 `add_css()` and `add_mathjax()` (shown in Yihui Xie's section) work
 unchanged; only the variable layer is theme-specific.
 

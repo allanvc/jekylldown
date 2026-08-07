@@ -200,32 +200,43 @@ change or replace it, no hand-written CSS in theme files. (On al-folio,
 run `bundle_install()` once first.)
 
 ```{r}
+# run these from anywhere inside the site's project -- they find the
+# site root like build_site(); from outside, add dir = "my-site"
+
 # layer 1 -- the theme's own CSS variables (al-folio and Chirpy;
 # dark mode aware). Minimal Mistakes styles through compiled skins
-# instead: set_theme_skin("my-blog", "dark")
-set_theme_style("my-site",
+# instead: set_theme_skin("dark")
+set_theme_style(
   accent = "red",                     # palette name, #hex or any CSS color
   footer_background = "#222222",
   background = c(light = "#fffdf7", dark = "#1c1c1d"))
 
 # layer 2 -- fonts (Google Fonts faces inlined) and base size
-set_theme_font("my-site", family = "Lora", size = "17px",
-               code = "JetBrains Mono")
+set_theme_font("Lora", size = "17px", code = "JetBrains Mono")
 
 # layer 3 -- one semantic element at a time (see the caveat below)
-set_element_style("my-site", "navbar", background = "#222222",
-                  color = "white")
+set_element_style("navbar", background = "#222222", color = "white")
+set_element_style("socials", size = "2rem")   # the social icon row
 
 # layer 4 -- the escape hatch: free-form CSS, but in a managed block
-add_css("my-site", ".profile img { border-radius: 50%; }",
-        id = "round-avatar")
+add_css(".profile img { border-radius: 50%; }", id = "round-avatar")
 
 # LaTeX math rendering, the way each theme expects it
-add_mathjax("my-site")
+add_mathjax()
 ```
 
-`set_theme_color("my-site", "red")` remains as a shorthand for setting
-the accent.
+`set_theme_color("red")` remains as a shorthand for setting the accent,
+and `set_theme_color(NULL)` removes the override again. For a full
+reset, delete the site-local stylesheet (`assets/css/main.scss`;
+`assets/main.scss` on minima): it holds only the theme's copy plus the
+managed blocks, and is recreated by the next customization call.
+
+All of these functions locate the site root from any directory inside
+the site, exactly like `build_site()` — that is why the examples above
+carry no path. To customize a site your R session is *not* in, pass its
+location via the `dir` argument, e.g.
+`set_theme_color("#b509ac", dir = "my-site")`; called from outside a
+site without `dir`, they abort with a message asking for it.
 
 **Layer 3 is the fragile one.** Layers 1-2 go through interfaces the
 theme itself maintains (its CSS variables, standard HTML elements), so

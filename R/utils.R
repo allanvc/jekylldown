@@ -171,18 +171,42 @@ bundle_install <- function(dir = ".") {
 
 # Walk up from `dir` until a _config.yml is found.
 site_root <- function(dir = ".") {
+  if (!dir.exists(dir)) {
+    cli::cli_abort(
+      "Directory {.path {dir}} does not exist. Pass the path to your
+       Jekyll site via the {.arg dir} argument."
+    )
+  }
   d <- normalizePath(dir, mustWork = TRUE)
   repeat {
     if (file.exists(file.path(d, "_config.yml"))) return(d)
     parent <- dirname(d)
     if (parent == d) {
-      cli::cli_abort(
+      cli::cli_abort(c(
         "No {.file _config.yml} found in {.path {dir}} or any parent
-         directory. Is this a Jekyll site? See {.fn jekylldown::new_site}."
-      )
+         directory, so this does not look like a Jekyll site.",
+        "i" = "If you are calling from outside the site folder, pass its
+               path explicitly, e.g.
+               {.code set_theme_color(\"#b509ac\", dir = \"path/to/site\")}.",
+        "i" = "To create a new site, see {.fn jekylldown::new_site}."
+      ))
     }
     d <- parent
   }
+}
+
+# Old signatures took the site path as the first argument; catch calls
+# in that style and point at `dir` instead of failing confusingly.
+abort_if_site_path <- function(x, fn) {
+  if (is.character(x) && length(x) == 1 && !is.na(x) && dir.exists(x) &&
+      file.exists(file.path(x, "_config.yml"))) {
+    cli::cli_abort(c(
+      "{.val {x}} looks like a site directory.",
+      "i" = "The site path goes in the {.arg dir} argument now:
+             {.code {fn}(..., dir = \"{x}\")}."),
+      call = parent.frame())
+  }
+  invisible(x)
 }
 
 slugify <- function(x) {

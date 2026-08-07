@@ -21,6 +21,9 @@ make_themed_site <- function(dir) {
     "  background-color: var(--global-bg-color);",
     "}"
   ), file.path(dir, "_sass", "_navbar.scss"))
+  xfun::write_utf8(".social .contact-icons { font-size: 4rem; }",
+                   file.path(dir, "_sass", "_components.scss"))
+  xfun::write_utf8("title: x", file.path(dir, "_config.yml"))
   xfun::write_utf8('@use "themes";', file.path(dir, "assets/css/main.scss"))
   dir
 }
@@ -28,7 +31,7 @@ make_themed_site <- function(dir) {
 test_that("set_theme_color appends overrides for every theme selector", {
   site <- make_themed_site(withr::local_tempdir())
 
-  hex <- set_theme_color(site, "red")
+  hex <- set_theme_color(dir = site, "red")
   expect_equal(hex, "#ff3636")
 
   css <- readLines(file.path(site, "assets/css/main.scss"))
@@ -38,7 +41,7 @@ test_that("set_theme_color appends overrides for every theme selector", {
   expect_equal(sum(grepl("--global-theme-color: #ff3636;", css, fixed = TRUE)), 2)
 
   # changing the color replaces the previous override instead of stacking
-  set_theme_color(site, "#123456")
+  set_theme_color(dir = site, "#123456")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_false(any(grepl("#ff3636", css, fixed = TRUE)))
   expect_equal(sum(grepl("--global-theme-color: #123456;", css, fixed = TRUE)), 2)
@@ -47,13 +50,13 @@ test_that("set_theme_color appends overrides for every theme selector", {
 
 test_that("set_theme_color rejects unknown color names with the palette", {
   site <- make_themed_site(withr::local_tempdir())
-  expect_error(set_theme_color(site, "mauve"), "red")
+  expect_error(set_theme_color(dir = site, "mauve"), "red")
 })
 
 test_that("set_theme_style overrides CSS variables per mode", {
   site <- make_themed_site(withr::local_tempdir())
 
-  set_theme_style(site,
+  set_theme_style(dir = site,
     accent = "red",
     background = c(light = "#fffdf7", dark = "#101010"),
     footer_background = "black")
@@ -72,16 +75,16 @@ test_that("set_theme_style overrides CSS variables per mode", {
   expect_true(any(root_at < light_at & light_at < dark_block_at[length(dark_block_at)]))
 
   # re-running replaces, not stacks
-  set_theme_style(site, accent = "#123456")
+  set_theme_style(dir = site, accent = "#123456")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_false(any(grepl("#fffdf7", css, fixed = TRUE)))
   expect_equal(sum(grepl("--global-theme-color: #123456;", css, fixed = TRUE)), 2)
 
-  expect_error(set_theme_style(site, banana = "red"), "banana")
-  expect_error(set_theme_style(site), "named")
+  expect_error(set_theme_style(dir = site, banana = "red"), "banana")
+  expect_error(set_theme_style(dir = site), "named")
 
   # a variable the theme does not define draws a warning
-  expect_warning(set_theme_style(site, card_background = "#fff"),
+  expect_warning(set_theme_style(dir = site, card_background = "#fff"),
                  "not found")
 })
 
@@ -91,7 +94,7 @@ test_that("set_theme_font writes font-face and overrides", {
     sprintf('@font-face { font-family: "%s"; src: url(fake.woff2); }', family)
   })
 
-  set_theme_font(site, family = "Lora", size = "17px",
+  set_theme_font(dir = site, family = "Lora", size = "17px",
                  code = "JetBrains Mono")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_true(any(grepl('@font-face { font-family: "Lora"', css, fixed = TRUE)))
@@ -105,15 +108,15 @@ test_that("set_theme_font writes font-face and overrides", {
   expect_true(any(grepl("html { font-size: 17px; }", css, fixed = TRUE)))
 
   # replaces on re-run; validates size
-  set_theme_font(site, size = "110%")
+  set_theme_font(dir = site, size = "110%")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_false(any(grepl("Lora", css, fixed = TRUE)))
-  expect_error(set_theme_font(site, size = "seventeen"), "CSS length")
-  expect_error(set_theme_font(site), "Nothing to set")
+  expect_error(set_theme_font(dir = site, size = "seventeen"), "CSS length")
+  expect_error(set_theme_font(dir = site), "Nothing to set")
 
   # a failing fetch warns but still writes the override
   withr::local_options(jekylldown.font_fetcher = function(family) NULL)
-  expect_warning(set_theme_font(site, family = "Ghost"), "Google Fonts")
+  expect_warning(set_theme_font(dir = site, family = "Ghost"), "Google Fonts")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_true(any(grepl('body { font-family: "Ghost", sans-serif; }', css,
                         fixed = TRUE)))
@@ -122,7 +125,7 @@ test_that("set_theme_font writes font-face and overrides", {
 test_that("set_element_style maps semantic elements to theme selectors", {
   site <- make_themed_site(withr::local_tempdir())
 
-  set_element_style(site, "navbar", background = "red", color = "white",
+  set_element_style(dir = site, "navbar", background = "red", color = "white",
                     font_weight = "600")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_true(any(grepl(".navbar {", css, fixed = TRUE)))
@@ -131,34 +134,34 @@ test_that("set_element_style maps semantic elements to theme selectors", {
   expect_true(any(grepl("font-weight: 600;", css, fixed = TRUE)))
 
   # two elements coexist in separate blocks; re-running one replaces it
-  set_element_style(site, "headings", color = "#222222")
-  set_element_style(site, "navbar", background = "blue")
+  set_element_style(dir = site, "headings", color = "#222222")
+  set_element_style(dir = site, "navbar", background = "blue")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_true(any(grepl("color: #222222;", css, fixed = TRUE)))
   expect_false(any(grepl("#ff3636", css, fixed = TRUE)))
   expect_true(any(grepl("background-color: blue;", css, fixed = TRUE)))
 
-  expect_error(set_element_style(site, "sidebar", color = "red"))
-  expect_error(set_element_style(site, "navbar"), "Nothing to set")
+  expect_error(set_element_style(dir = site, "sidebar", color = "red"))
+  expect_error(set_element_style(dir = site, "navbar"), "Nothing to set")
 
   # selector missing from the theme sass -> the fragile-layer warning
-  expect_warning(set_element_style(site, "buttons", color = "red"),
+  expect_warning(set_element_style(dir = site, "buttons", color = "red"),
                  "not found")
 })
 
 test_that("add_css writes and removes managed blocks", {
   site <- make_themed_site(withr::local_tempdir())
 
-  add_css(site, ".profile img { border-radius: 50%; }", id = "round-avatar")
+  add_css(dir = site, ".profile img { border-radius: 50%; }", id = "round-avatar")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_true(any(grepl("border-radius: 50%;", css, fixed = TRUE)))
   expect_true(any(grepl("custom css: round-avatar", css, fixed = TRUE)))
 
-  add_css(site, character(0), id = "round-avatar")
+  add_css(dir = site, character(0), id = "round-avatar")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_false(any(grepl("round-avatar", css, fixed = TRUE)))
 
-  expect_error(add_css(site, "a {}", id = "Bad Id!"), "id")
+  expect_error(add_css(dir = site, "a {}", id = "Bad Id!"), "id")
 })
 
 test_that("site_theme detects the theme from _config.yml", {
@@ -203,7 +206,7 @@ make_mm_site <- function(dir) {
 test_that("set_theme_style on Chirpy mirrors its mode selectors", {
   site <- make_chirpy_site(withr::local_tempdir())
 
-  set_theme_style(site, accent = "#d2603a",
+  set_theme_style(dir = site, accent = "#d2603a",
                   background = c(light = "white", dark = "#0d0d0d"))
   css <- readLines(file.path(site, "assets/css/jekyll-theme-chirpy.scss"))
   expect_true("html:not([data-mode]), html[data-mode='light'] {" %in% css)
@@ -215,13 +218,13 @@ test_that("set_theme_style on Chirpy mirrors its mode selectors", {
   expect_equal(sum(grepl("--main-bg: #0d0d0d;", css, fixed = TRUE)), 2)
 
   # chirpy-only option validated against the chirpy map
-  expect_error(set_theme_style(site, footer_background = "x"),
+  expect_error(set_theme_style(dir = site, footer_background = "x"),
                "sidebar_background")
   # var missing from the fixture sass -> warning
-  expect_warning(set_theme_style(site, heading = "#000"), "not found")
+  expect_warning(set_theme_style(dir = site, heading = "#000"), "not found")
 
   # set_theme_color delegates to the accent variable
-  set_theme_color(site, "#00ff00")
+  set_theme_color(dir = site, "#00ff00")
   css <- readLines(file.path(site, "assets/css/jekyll-theme-chirpy.scss"))
   expect_true(any(grepl("--link-color: #00ff00;", css, fixed = TRUE)))
 })
@@ -229,24 +232,24 @@ test_that("set_theme_style on Chirpy mirrors its mode selectors", {
 test_that("Minimal Mistakes styles via skins, not variables", {
   site <- make_mm_site(withr::local_tempdir())
 
-  expect_error(set_theme_style(site, background = "#fff"), "set_theme_skin")
-  expect_error(set_theme_color(site, "red"), "set_theme_skin")
+  expect_error(set_theme_style(dir = site, background = "#fff"), "set_theme_skin")
+  expect_error(set_theme_color(dir = site, "red"), "set_theme_skin")
 
-  set_theme_skin(site, "dark")
+  set_theme_skin(dir = site, "dark")
   cfg <- readLines(file.path(site, "_config.yml"))
   expect_true('minimal_mistakes_skin: "dark"' %in% cfg)
-  set_theme_skin(site, "air")
+  set_theme_skin(dir = site, "air")
   cfg <- readLines(file.path(site, "_config.yml"))
   expect_true('minimal_mistakes_skin: "air"' %in% cfg)
   expect_equal(sum(grepl("minimal_mistakes_skin", cfg)), 1)
 
-  expect_error(set_theme_skin(site, "vaporwave"), "Available")
+  expect_error(set_theme_skin(dir = site, "vaporwave"), "Available")
   # skins are MM-only
   chirpy <- make_chirpy_site(withr::local_tempdir())
-  expect_error(set_theme_skin(chirpy, "dark"), "Minimal Mistakes")
+  expect_error(set_theme_skin("dark", dir = chirpy), "Minimal Mistakes")
 
   # element map uses MM selectors, validated against its sass
-  set_element_style(site, "navbar", background = "#000")
+  set_element_style(dir = site, "navbar", background = "#000")
   css <- readLines(file.path(site, "assets/css/main.scss"))
   expect_true(any(grepl(".masthead {", css, fixed = TRUE)))
 })
@@ -321,4 +324,44 @@ test_that("add_mathjax enables math per theme convention", {
   cfg <- readLines(file.path(mm, "_config.yml"))
   expect_true("head_scripts:" %in% cfg)
   expect_true(any(grepl("MathJax.js", cfg, fixed = TRUE)))
+})
+
+test_that("color reset, socials element and root-finding work", {
+  site <- make_themed_site(withr::local_tempdir())
+
+  # reset: the override block goes away, the rest of the file stays
+  set_theme_color(dir = site, "red")
+  set_theme_color(dir = site, NULL)
+  css <- readLines(file.path(site, "assets/css/main.scss"))
+  expect_false(any(grepl("jekylldown theme color", css)))
+  expect_true('@use "themes";' %in% css)
+
+  # socials element: size via the curated map, matching the theme's own
+  # `.social .contact-icons` specificity, plus the image-icon companion
+  set_element_style(dir = site, "socials", size = "2rem")
+  css <- readLines(file.path(site, "assets/css/main.scss"))
+  expect_true(any(grepl(".social .contact-icons {", css, fixed = TRUE)))
+  expect_true(any(grepl("font-size: 2rem;", css, fixed = TRUE)))
+  expect_true(any(grepl(".social .contact-icons a img {", css, fixed = TRUE)))
+
+  # styling functions find the site root from a subdirectory, like
+  # build_site()
+  hex <- set_theme_color("red", dir = file.path(site, "_sass"))
+  expect_equal(hex, "#ff3636")
+})
+
+test_that("old-style calls with the site path first get a pointer to dir", {
+  site <- make_themed_site(withr::local_tempdir())
+  expect_error(set_theme_color(site, "red"), "dir")
+  expect_error(set_element_style(site, "navbar", color = "red"), "dir")
+  expect_error(add_css(site, ".x { }"), "dir")
+})
+
+test_that("socials size on Chirpy scales the circular buttons too", {
+  site <- make_chirpy_site(withr::local_tempdir())
+  suppressWarnings(
+    set_element_style("socials", size = "2rem", dir = site))
+  css <- readLines(file.path(site, "assets/css/jekyll-theme-chirpy.scss"))
+  expect_true(any(grepl("#sidebar .sidebar-bottom {", css, fixed = TRUE)))
+  expect_true(any(grepl("width: calc(2rem + 0.75rem);", css, fixed = TRUE)))
 })
