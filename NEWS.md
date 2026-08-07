@@ -1,3 +1,18 @@
+# jekylldown 0.2.3
+
+* The Windows CI smoke test grew an al-folio end-to-end leg
+  (`new_site` from the template, `bundle_install` with its git-sourced
+  gem, `build_site`), so the theme that exercises the most toolchain
+  now runs on a real Windows on every push.
+* New `install_git()` (Windows): downloads MinGit -- the portable build
+  Git for Windows publishes for embedding -- into the isolated
+  toolchain, with the same API-then-github.com-then-pinned release
+  ladder, `file =` for offline installs and toolchain reuse as
+  `install_ruby()`. Bundler and `new_site()`'s template fetch find it
+  automatically, so al-folio's git-sourced gem installs without a
+  system git; `bundle_install()`'s missing-git message and `check()`
+  now point at it.
+
 # jekylldown 0.2.2
 
 * al-folio scaffolds cleanly on Windows again: upstream started

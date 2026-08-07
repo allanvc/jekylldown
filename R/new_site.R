@@ -185,8 +185,8 @@ scaffold_minimal_mistakes <- function(dir, title) {
 # machine without git (common on Windows) can still scaffold every
 # theme.
 clone_template <- function(url, dir, label) {
-  git <- Sys.which("git")
-  if (nzchar(git)) {
+  git <- find_cmd("git")
+  if (!is.null(git)) {
     cli::cli_alert_info("Cloning {label} (shallow) ...")
     res <- processx::run(
       git, c("clone", "--depth", "1", url, dir),

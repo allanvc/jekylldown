@@ -21,10 +21,11 @@ after editing the \code{Gemfile}); afterwards \code{\link[=build_site]{build_sit
 }
 \details{
 One external requirement: a \code{Gemfile} that installs gems straight from
-git repositories (al-folio's does) needs \code{git} on the \code{PATH}, because
-Bundler shells out to it -- the only step in the jekylldown workflow
-that requires git. On Windows, install it from
-\url{https://git-scm.com/downloads}.
+git repositories (al-folio's does) needs \code{git}, because Bundler
+shells out to it -- the only step in the jekylldown workflow that
+requires git. On Windows, \code{\link[=install_git]{install_git()}} puts a portable copy in
+the isolated toolchain; elsewhere install it with your package
+manager.
 }
 \examples{
 \dontrun{

@@ -73,11 +73,13 @@ directly from `github.com`; fully offline, download the `.7z` from
 [rubyinstaller.org](https://rubyinstaller.org/downloads/) and pass it as
 `file =`. git is not required either: the GitHub-hosted theme templates
 (al-folio, Chirpy) fall back to a plain archive download when git is
-absent. (One exception: al-folio’s `bundle_install()` needs git, because
-its `Gemfile` pulls a gem from a git repository — install it from
-[git-scm.com](https://git-scm.com/downloads) if you use that theme.) The
-whole workflow — `install_ruby()`, `new_site()`, `build_site()`,
-`serve_site()` — runs on a Windows GitHub Actions runner on every push.
+absent. The one step that needs git — al-folio’s `bundle_install()`,
+whose `Gemfile` pulls a gem from a git repository — is covered by
+`install_git()`, which drops a portable MinGit into the same isolated
+toolchain (for publishing with `git push` you will still want a regular
+[git installation](https://git-scm.com/downloads)). The whole workflow —
+`install_ruby()`, `new_site()`, `build_site()`, `serve_site()` — runs on
+a Windows GitHub Actions runner on every push.
 
 ### Linux
 

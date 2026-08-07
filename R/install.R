@@ -215,6 +215,168 @@ ri_pick_asset <- function(release_json) {
   url
 }
 
+#' Install a portable git into jekylldown's isolated toolchain (Windows)
+#'
+#' The one jekylldown step that needs git is [bundle_install()] on a
+#' `Gemfile` that pulls gems straight from git repositories (al-folio's
+#' does) -- Bundler shells out to git for those. This function covers
+#' machines without git: it downloads MinGit, the portable build that
+#' Git for Windows publishes exactly for embedding (a plain `.zip`, no
+#' installer, no registry entries, no admin rights), and unpacks it
+#' under `tools::R_user_dir("jekylldown", "data")/git`, where every
+#' jekylldown-run Ruby command finds it automatically. Nothing is
+#' installed system-wide; delete the data directory to uninstall.
+#'
+#' Like [install_ruby()], the release lookup uses the GitHub API and
+#' falls back to the `releases/latest` page on `github.com` (then to a
+#' pinned known-good release) on networks where `api.github.com` is
+#' unreachable. x86-64 only.
+#'
+#' This is a private copy for the toolchain: it does not appear on your
+#' system `PATH`, so it does not replace a real git installation for
+#' everyday version-control work (for publishing a site with
+#' `git push`, install git from <https://git-scm.com/downloads>).
+#'
+#' @param file Optional path to an already-downloaded
+#'   `MinGit-<version>-64-bit.zip`, for offline installs. Default `NULL`
+#'   downloads the latest release from GitHub.
+#' @param version Optional Git for Windows release to install instead
+#'   of the latest, in asset notation (e.g. `"2.55.0.3"` for the tag
+#'   `v2.55.0.windows.3`, `"2.47.1"` for `v2.47.1.windows.1`).
+#' @param force Re-download even when the toolchain directory already
+#'   holds a working git? Default `FALSE`.
+#' @return The path to the installed `git` executable, invisibly.
+#' @examples
+#' \dontrun{
+#' install_git()
+#'
+#' # offline: point at an archive downloaded elsewhere
+#' install_git(file = "C:/Users/me/Downloads/MinGit-2.55.0.3-64-bit.zip")
+#' }
+#' @export
+install_git <- function(file = NULL, version = NULL, force = FALSE) {
+  if (!identical(.Platform$OS.type, "windows")) {
+    cli::cli_abort(c(
+      "Automatic git install is for Windows.",
+      "i" = "On Linux/macOS install git with your package manager;
+             jekylldown finds it on the {.envvar PATH}."))
+  }
+
+  dest <- file.path(jd_data_dir(), "git")
+  exe <- file.path(dest, "cmd", "git.exe")
+  if (!force && is.null(file) && is.null(version) && file.exists(exe)) {
+    cli::cli_alert_info(
+      "git already provisioned at {.path {dest}} -- reusing it
+       (re-download with {.code force = TRUE}).")
+  } else {
+    if (is.null(file)) {
+      url <- if (!is.null(version)) {
+        mg_pinned_url(version)
+      } else {
+        mg_latest_url()
+      }
+      file <- tempfile(fileext = ".zip")
+      on.exit(unlink(file), add = TRUE)
+      cli::cli_alert_info("Downloading {.url {url}} ...")
+      status <- tryCatch(
+        utils::download.file(url, file, mode = "wb", quiet = TRUE),
+        error = function(e) conditionMessage(e))
+      if (!identical(status, 0L)) {
+        cli::cli_abort(c(
+          "Could not download {.url {url}}
+           ({if (is.character(status)) status else paste('status', status)}).",
+          "i" = "Behind a proxy or firewall? Download the MinGit
+                 {.file .zip} from
+                 {.url https://github.com/git-for-windows/git/releases}
+                 in your browser and pass its path as {.arg file}."))
+      }
+    }
+    if (dir.exists(dest)) unlink(dest, recursive = TRUE)
+    fs::dir_create(dest)
+    # MinGit archives have no top-level directory: cmd/, mingw64/ etc.
+    # sit at the root of the zip
+    utils::unzip(file, exdir = dest)
+  }
+
+  if (!file.exists(exe)) {
+    cli::cli_abort("The archive did not contain {.path cmd/git.exe}.")
+  }
+  version_str <- tryCatch(
+    trimws(processx::run(exe, "--version")$stdout),
+    error = function(e) "")
+  cli::cli_alert_success(
+    "{version_str} installed under {.path {dest}} (delete
+     {.path {jd_data_dir()}} to uninstall).")
+  invisible(exe)
+}
+
+# A recent MinGit release known to work, for when GitHub cannot be
+# asked for the latest one.
+mg_fallback_version <- "2.55.0.3"
+
+# Asset-notation version -> download URL. Git for Windows tags releases
+# v<X.Y.Z>.windows.<N>; the asset drops the suffix when N is 1 and
+# appends .N otherwise ("2.47.1" <-> v2.47.1.windows.1, "2.55.0.3" <->
+# v2.55.0.windows.3).
+mg_pinned_url <- function(version) {
+  parts <- strsplit(version, ".", fixed = TRUE)[[1]]
+  tag <- if (length(parts) == 4) {
+    sprintf("v%s.windows.%s", paste(parts[1:3], collapse = "."), parts[4])
+  } else {
+    sprintf("v%s.windows.1", version)
+  }
+  sprintf(paste0("https://github.com/git-for-windows/git/releases",
+                 "/download/%s/MinGit-%s-64-bit.zip"), tag, version)
+}
+
+# The newest MinGit URL: GitHub API, then the releases/latest page on
+# github.com, then the pinned fallback -- same ladder as install_ruby().
+mg_latest_url <- function() {
+  fetch <- function(url) tryCatch(
+    suppressWarnings(paste(readLines(url, warn = FALSE), collapse = "\n")),
+    error = function(e) NULL)
+
+  api <- fetch(
+    "https://api.github.com/repos/git-for-windows/git/releases/latest")
+  if (!is.null(api)) return(mg_pick_asset(api))
+
+  html <- fetch("https://github.com/git-for-windows/git/releases/latest")
+  version <- if (!is.null(html)) mg_tag_version(html)
+  if (length(version)) return(mg_pinned_url(version))
+
+  cli::cli_warn(
+    "Could not reach GitHub to find the latest MinGit release; using
+     the known-good MinGit {mg_fallback_version} instead (pass
+     {.arg version} to choose another one).")
+  mg_pinned_url(mg_fallback_version)
+}
+
+# The plain 64-bit MinGit zip out of a release JSON (never the busybox
+# variant).
+mg_pick_asset <- function(release_json) {
+  pat <- "https://[^\"]*/MinGit-[0-9.]+-64-bit[.]zip"
+  url <- regmatches(release_json, regexpr(pat, release_json))
+  if (!length(url)) {
+    cli::cli_abort(
+      "No MinGit {.file .zip} in the latest Git for Windows release.
+       Download one from
+       {.url https://github.com/git-for-windows/git/releases} and pass
+       it as {.arg file}.")
+  }
+  url
+}
+
+# "v2.55.0.windows.3" somewhere in the releases/latest page -> asset
+# notation "2.55.0.3"; "v2.47.1.windows.1" -> "2.47.1".
+mg_tag_version <- function(html) {
+  tag <- regmatches(html, regexpr(
+    "v[0-9]+[.][0-9]+[.][0-9]+[.]windows[.][0-9]+", html))
+  if (!length(tag)) return(character())
+  m <- regmatches(tag, regexec(
+    "^v([0-9.]+)[.]windows[.]([0-9]+)$", tag))[[1]]
+  if (m[3] == "1") m[2] else paste(m[2], m[3], sep = ".")
+}
+
 #' Install the Quarto CLI into jekylldown's isolated toolchain
 #'
 #' Downloads the latest Quarto release and unpacks it under

@@ -14,6 +14,13 @@ jd_ruby_dir <- function() {
   if (dir.exists(file.path(d, "bin"))) d else NULL
 }
 
+# Provisioned portable git (MinGit layout), when install_git() has set
+# one up under the data dir.
+jd_git_dir <- function() {
+  d <- file.path(jd_data_dir(), "git")
+  if (file.exists(file.path(d, "cmd", "git.exe"))) d else NULL
+}
+
 # Isolated gem directory. A provisioned conda-forge Ruby keeps its gems in
 # share/rubygems inside the env (its rubygems is configured to ignore an
 # external GEM_HOME at install time); with a system Ruby we use gems/ under
@@ -33,8 +40,10 @@ jd_gem_home <- function() {
 jd_env <- function() {
   gem_home <- jd_gem_home()
   ruby <- jd_ruby_dir()
+  git <- jd_git_dir()
   bins <- c(file.path(gem_home, "bin"),
-            if (!is.null(ruby)) file.path(ruby, "bin"))
+            if (!is.null(ruby)) file.path(ruby, "bin"),
+            if (!is.null(git)) file.path(git, "cmd"))
   bins <- bins[dir.exists(bins)]
   if (!length(bins) && !dir.exists(gem_home)) return(character())
 
@@ -74,8 +83,10 @@ find_cmd <- function(cmd) {
     ""
   }
   ruby <- jd_ruby_dir()
+  git <- jd_git_dir()
   bases <- c(file.path(jd_gem_home(), "bin", cmd),
-             if (!is.null(ruby)) file.path(ruby, "bin", cmd))
+             if (!is.null(ruby)) file.path(ruby, "bin", cmd),
+             if (!is.null(git)) file.path(git, "cmd", cmd))
   cand <- as.vector(t(outer(bases, exts, paste0)))
   cand <- cand[file.exists(cand)]
   if (length(cand)) return(cand[1])
@@ -170,10 +181,11 @@ gemfile_needs_git <- function(root) {
 #' [serve_site()] automatically switch to `bundle exec jekyll`.
 #'
 #' One external requirement: a `Gemfile` that installs gems straight from
-#' git repositories (al-folio's does) needs `git` on the `PATH`, because
-#' Bundler shells out to it -- the only step in the jekylldown workflow
-#' that requires git. On Windows, install it from
-#' <https://git-scm.com/downloads>.
+#' git repositories (al-folio's does) needs `git`, because Bundler
+#' shells out to it -- the only step in the jekylldown workflow that
+#' requires git. On Windows, [install_git()] puts a portable copy in
+#' the isolated toolchain; elsewhere install it with your package
+#' manager.
 #'
 #' @param dir Directory in (or under) the site.
 #' @return Invisibly, the [processx::run()] result.
@@ -193,12 +205,18 @@ bundle_install <- function(dir = ".") {
              {.run jekylldown::check()} shows what is on the PATH."
     ))
   }
-  if (gemfile_needs_git(root) && !nzchar(Sys.which("git"))) {
+  if (gemfile_needs_git(root) && is.null(find_cmd("git"))) {
     cli::cli_abort(c(
       "This site's {.file Gemfile} installs gems from git repositories
        (al-folio's does), and {.code git} was not found.",
-      "i" = "Install git from {.url https://git-scm.com/downloads} and
-             re-run {.code bundle_install(\"{dir}\")}."))
+      "i" = if (identical(.Platform$OS.type, "windows")) {
+        "Run {.run jekylldown::install_git()} to put a portable git in
+         jekylldown's isolated toolchain, then re-run
+         {.code bundle_install(\"{dir}\")}."
+      } else {
+        "Install git from {.url https://git-scm.com/downloads} and
+         re-run {.code bundle_install(\"{dir}\")}."
+      }))
   }
   sc <- shell_cmd(bundle, "install")
   res <- processx::run(

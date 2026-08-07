@@ -19,7 +19,8 @@ check <- function(dir = ".") {
     ruby    = cmd_version("ruby"),
     gem     = cmd_version("gem"),
     bundler = cmd_version("bundle"),
-    jekyll  = cmd_version("jekyll")
+    jekyll  = cmd_version("jekyll"),
+    git     = cmd_version("git")
   )
 
   cli::cli_h2("Toolchain")
@@ -39,6 +40,15 @@ check <- function(dir = ".") {
            "Install Ruby >= 3.0 (e.g. {.code apt install ruby-full})."
          })
   report("gem", info$gem, TRUE, "Usually ships with Ruby.")
+  report("git", info$git, FALSE,
+         if (identical(.Platform$OS.type, "windows")) {
+           "Only needed by {.code bundle_install()} on Gemfiles with
+            git-sourced gems (al-folio); get a portable copy with
+            {.run jekylldown::install_git()}."
+         } else {
+           "Only needed by {.code bundle_install()} on Gemfiles with
+            git-sourced gems (al-folio)."
+         })
   report("bundle", info$bundler, FALSE,
          "Optional for simple sites; themes like al-folio want it.
           {.code gem install bundler}.")

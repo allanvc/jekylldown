@@ -45,9 +45,18 @@ jobs:
           install.packages(".", repos = NULL, type = "source")
           library(jekylldown)
           install_ruby()
+          install_git()
           check()
           new_site("smoke", theme = "minima")
           build_site("smoke")
           stopifnot(file.exists("smoke/_site/index.html"))
           serve_site("smoke", background = TRUE)
           stop_server("smoke")
+      - name: al-folio end to end (git-sourced gems)
+        shell: Rscript {0}
+        run: |
+          library(jekylldown)
+          new_site("smoke-alfolio", theme = "al-folio", demo = FALSE)
+          bundle_install("smoke-alfolio")
+          build_site("smoke-alfolio")
+          stopifnot(file.exists("smoke-alfolio/_site/index.html"))
