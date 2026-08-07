@@ -161,7 +161,9 @@ serve_rebuild <- function(root, command, first = FALSE) {
   run <- function() {
     t0 <- Sys.time()
     knitted <- knit_all(root, quiet = TRUE)
-    status <- system(paste(command, "> /dev/null 2>&1"))
+    null_dev <- if (identical(.Platform$OS.type, "windows")) "NUL"
+                else "/dev/null"
+    status <- system(paste(command, ">", null_dev, "2>&1"))
     if (status != 0) {
       # rerun visibly so the error is in the log/console
       system(command)

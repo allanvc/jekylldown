@@ -66,15 +66,32 @@ jd_set_env <- function() {
 }
 
 # Locate an executable: isolated gem bin dir first, then provisioned Ruby,
-# then PATH.
+# then PATH. On Windows the Ruby commands are .bat/.cmd/.exe wrappers.
 find_cmd <- function(cmd) {
+  exts <- if (identical(.Platform$OS.type, "windows")) {
+    c(".bat", ".cmd", ".exe", "")
+  } else {
+    ""
+  }
   ruby <- jd_ruby_dir()
-  cand <- c(file.path(jd_gem_home(), "bin", cmd),
-            if (!is.null(ruby)) file.path(ruby, "bin", cmd))
+  bases <- c(file.path(jd_gem_home(), "bin", cmd),
+             if (!is.null(ruby)) file.path(ruby, "bin", cmd))
+  cand <- as.vector(t(outer(bases, exts, paste0)))
   cand <- cand[file.exists(cand)]
   if (length(cand)) return(cand[1])
   hit <- Sys.which(cmd)
   if (nzchar(hit)) unname(hit) else NULL
+}
+
+# processx cannot exec .bat/.cmd files directly (CreateProcess wants a
+# real executable); route those through cmd.exe /c.
+shell_cmd <- function(cmd, args,
+                      windows = identical(.Platform$OS.type, "windows")) {
+  if (windows && grepl("[.](bat|cmd)$", cmd, ignore.case = TRUE)) {
+    list(cmd = Sys.getenv("COMSPEC", "cmd.exe"), args = c("/c", cmd, args))
+  } else {
+    list(cmd = cmd, args = args)
+  }
 }
 
 jekyll_cmd <- function() {
@@ -92,6 +109,8 @@ run_jekyll <- function(args, dir = ".", echo = TRUE) {
       "The {.code jekyll} executable was not found.",
       "i" = "Install it with {.code gem install jekyll bundler}, or point the
              option {.code jekylldown.jekyll} at an executable.",
+      "i" = "On Windows, {.fn jekylldown::install_ruby} sets up Ruby and
+             Jekyll in an isolated toolchain.",
       "i" = "Run {.run jekylldown::check()} for a full diagnostic."
     ))
   }
@@ -110,8 +129,9 @@ run_jekyll <- function(args, dir = ".", echo = TRUE) {
       env <- c(env, JEKYLL_NO_BUNDLER_REQUIRE = "true")
     }
   }
+  sc <- shell_cmd(cmd, args)
   res <- processx::run(
-    cmd, args,
+    sc$cmd, sc$args,
     wd = dir,
     env = env,
     echo = echo,
@@ -153,8 +173,9 @@ bundle_install <- function(dir = ".") {
              {.run jekylldown::check()} shows what is on the PATH."
     ))
   }
+  sc <- shell_cmd(bundle, "install")
   res <- processx::run(
-    bundle, "install",
+    sc$cmd, sc$args,
     wd = root,
     env = c("current", jd_env()),
     echo = TRUE,
@@ -219,8 +240,9 @@ slugify <- function(x) {
 cmd_version <- function(cmd) {
   path <- find_cmd(cmd)
   if (is.null(path)) return(NULL)
+  sc <- shell_cmd(path, "--version")
   res <- tryCatch(
-    processx::run(path, "--version", env = c("current", jd_env()),
+    processx::run(sc$cmd, sc$args, env = c("current", jd_env()),
                   error_on_status = FALSE, timeout = 30),
     error = function(e) NULL
   )

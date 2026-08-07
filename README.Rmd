@@ -60,6 +60,23 @@ To write posts in Quarto (`.qmd`) you also need the Quarto CLI —
 `install_quarto()` puts it in the same isolated toolchain directory, or
 it is picked up from the `PATH`.
 
+### Windows
+
+One function call — no admin rights, no graphical installer, nothing on
+the system `PATH`:
+
+```{r}
+install.packages("archive")   # unpacks the portable Ruby archive
+jekylldown::install_ruby()
+```
+
+It downloads the portable [RubyInstaller](https://rubyinstaller.org)
+archive into jekylldown's isolated toolchain directory and installs the
+jekyll and bundler gems there; deleting that one directory uninstalls
+everything. If a gem ever complains about missing development tools,
+re-run as `install_ruby(devkit = TRUE)` to include the MSYS2 compiler
+toolchain.
+
 ### Linux
 
 With admin rights (Debian/Ubuntu shown):

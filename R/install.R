@@ -1,3 +1,135 @@
+#' Install Ruby and Jekyll into jekylldown's isolated toolchain (Windows)
+#'
+#' Windows has no system package manager to get Ruby from, so this
+#' function does the whole setup: it downloads the portable RubyInstaller
+#' archive (a `.7z`, no graphical installer, no registry entries), unpacks
+#' it under `tools::R_user_dir("jekylldown", "data")/ruby`, and installs
+#' the **jekyll** and **bundler** gems into the package's isolated gem
+#' directory. Nothing is installed system-wide and no shell configuration
+#' is touched; uninstall by deleting the data directory. [build_site()],
+#' [serve_site()] and [check()] find this toolchain automatically.
+#'
+#' Unpacking the `.7z` archive needs the \pkg{archive} package
+#' (`install.packages("archive")`).
+#'
+#' Most gems jekylldown's themes use ship precompiled Windows binaries.
+#' If a `gem install`/[bundle_install()] ever fails complaining about a
+#' missing compiler ("you have to install development tools first"),
+#' re-run with `devkit = TRUE` to get the larger archive that bundles the
+#' MSYS2 build tools.
+#'
+#' On Linux and macOS install Ruby with your package manager instead (see
+#' the README's prerequisites); jekylldown picks it up from the `PATH`.
+#'
+#' @param file Optional path to an already-downloaded
+#'   `rubyinstaller-<version>-x64.7z`, for offline installs. Default
+#'   `NULL` downloads the latest release from GitHub.
+#' @param devkit Also include the MSYS2 toolchain, needed only for gems
+#'   that compile C extensions on install? Default `FALSE`.
+#' @return The path to the installed `jekyll` command, invisibly.
+#' @examples
+#' \dontrun{
+#' install_ruby()
+#'
+#' # offline: point at an archive downloaded elsewhere
+#' install_ruby(file = "C:/Users/me/Downloads/rubyinstaller-3.3.7-1-x64.7z")
+#' }
+#' @export
+install_ruby <- function(file = NULL, devkit = FALSE) {
+  if (!identical(.Platform$OS.type, "windows")) {
+    cli::cli_abort(c(
+      "Automatic Ruby install is for Windows, which has no package
+       manager to get Ruby from.",
+      "i" = "On Linux/macOS install Ruby (>= 3.0) with your package
+             manager -- see the README's prerequisites section;
+             jekylldown finds it on the {.envvar PATH}."))
+  }
+  if (!requireNamespace("archive", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "The {.pkg archive} package is needed to unpack the RubyInstaller
+       {.file .7z} archive.",
+      "i" = "Run {.code install.packages(\"archive\")} and call
+             {.fn install_ruby} again."))
+  }
+
+  if (is.null(file)) {
+    api <- "https://api.github.com/repos/oneclick/rubyinstaller2/releases/latest"
+    release <- tryCatch(
+      paste(readLines(api, warn = FALSE), collapse = "\n"),
+      error = function(e) cli::cli_abort(
+        "Could not reach GitHub to find the latest RubyInstaller release
+         ({conditionMessage(e)}). Download the {.file .7z} archive from
+         {.url https://rubyinstaller.org/downloads/} yourself and pass it
+         as {.arg file}."))
+    url <- ri_pick_asset(release, devkit = devkit)
+    file <- tempfile(fileext = ".7z")
+    on.exit(unlink(file), add = TRUE)
+    cli::cli_alert_info("Downloading {.url {url}} ...")
+    utils::download.file(url, file, mode = "wb", quiet = TRUE)
+  }
+
+  exdir <- tempfile("ruby-install-")
+  on.exit(unlink(exdir, recursive = TRUE), add = TRUE)
+  cli::cli_alert_info("Unpacking (this can take a few minutes) ...")
+  archive::archive_extract(file, dir = exdir)
+  top <- list.dirs(exdir, recursive = FALSE)
+  if (length(top) != 1) {
+    cli::cli_abort("Unexpected archive layout: expected one top-level
+                    directory, found {length(top)}.")
+  }
+
+  dest <- file.path(jd_data_dir(), "ruby")
+  if (dir.exists(dest)) unlink(dest, recursive = TRUE)
+  fs::dir_create(dirname(dest))
+  fs::dir_copy(top, dest)
+
+  gem <- find_cmd("gem")
+  if (is.null(gem)) {
+    cli::cli_abort("The archive did not contain a {.code gem} command
+                    under {.path bin/}.")
+  }
+  cli::cli_alert_info("Installing the {.pkg jekyll} and {.pkg bundler}
+                       gems ...")
+  sc <- shell_cmd(gem, c("install", "--no-document", "jekyll", "bundler"))
+  res <- processx::run(sc$cmd, sc$args, env = c("current", jd_env()),
+                       echo = TRUE, error_on_status = FALSE)
+  if (res$status != 0) {
+    cli::cli_abort(c(
+      "{.code gem install jekyll bundler} failed (exit status
+       {res$status}).",
+      if (!devkit) c("i" = "If the error mentions development tools or a
+                            compiler, re-run with
+                            {.code install_ruby(devkit = TRUE)}.")))
+  }
+
+  version <- cmd_version("jekyll")
+  if (is.null(version)) version <- ""
+  cli::cli_alert_success(
+    "Ruby and Jekyll {version} installed under {.path {dest}}
+     (delete {.path {jd_data_dir()}} to uninstall).")
+  invisible(find_cmd("jekyll"))
+}
+
+# Pick the portable .7z asset out of a rubyinstaller2 release JSON. The
+# devkit archives additionally bundle the MSYS2 toolchain that gems with
+# C extensions need at install time.
+ri_pick_asset <- function(release_json, devkit = FALSE) {
+  pat <- if (devkit) {
+    "https://[^\"]*/rubyinstaller-devkit-[0-9][^\"]*-x64[.]7z"
+  } else {
+    "https://[^\"]*/rubyinstaller-[0-9][^\"]*-x64[.]7z"
+  }
+  url <- regmatches(release_json, regexpr(pat, release_json))
+  if (!length(url)) {
+    cli::cli_abort(
+      "No matching {.file .7z} archive in the latest RubyInstaller
+       release. Download one from
+       {.url https://rubyinstaller.org/downloads/} and pass it as
+       {.arg file}.")
+  }
+  url
+}
+
 #' Install the Quarto CLI into jekylldown's isolated toolchain
 #'
 #' Downloads the latest Quarto release and unpacks it under

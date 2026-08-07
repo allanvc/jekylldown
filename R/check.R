@@ -33,7 +33,11 @@ check <- function(dir = ".") {
     }
   }
   report("ruby", info$ruby, TRUE,
-         "Install Ruby >= 3.0 (e.g. {.code apt install ruby-full}).")
+         if (identical(.Platform$OS.type, "windows")) {
+           "Install it with {.run jekylldown::install_ruby()}."
+         } else {
+           "Install Ruby >= 3.0 (e.g. {.code apt install ruby-full})."
+         })
   report("gem", info$gem, TRUE, "Usually ships with Ruby.")
   report("bundle", info$bundler, FALSE,
          "Optional for simple sites; themes like al-folio want it.

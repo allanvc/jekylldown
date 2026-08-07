@@ -1,3 +1,19 @@
+# jekylldown 0.1.16
+
+* Windows support for the isolated toolchain: new `install_ruby()`
+  downloads the portable RubyInstaller archive (a `.7z`; needs the
+  `archive` package to unpack) into
+  `tools::R_user_dir("jekylldown", "data")` and installs the jekyll and
+  bundler gems there -- no admin rights, no graphical installer,
+  nothing system-wide. `install_ruby(devkit = TRUE)` adds the MSYS2
+  build tools for gems that compile C extensions.
+* Windows plumbing to match: executable discovery now finds the
+  `.bat`/`.cmd`/`.exe` wrappers Ruby uses there, those wrappers are run
+  through `cmd.exe /c` (processx cannot exec batch files directly), the
+  quiet serve rebuild redirects to `NUL` instead of `/dev/null`, and
+  `check()`'s advice for a missing Ruby points at `install_ruby()` on
+  Windows.
+
 # jekylldown 0.1.15
 
 * `set_element_style("socials", size = ...)` now actually resizes the

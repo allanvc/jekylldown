@@ -4,6 +4,7 @@
 # jekylldown
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 **jekylldown** does for [Jekyll](https://jekyllrb.com) what
@@ -50,6 +51,23 @@ jekylldown’s own isolated toolchain directory
 To write posts in Quarto (`.qmd`) you also need the Quarto CLI —
 `install_quarto()` puts it in the same isolated toolchain directory, or
 it is picked up from the `PATH`.
+
+### Windows
+
+One function call — no admin rights, no graphical installer, nothing on
+the system `PATH`:
+
+``` r
+install.packages("archive")   # unpacks the portable Ruby archive
+jekylldown::install_ruby()
+```
+
+It downloads the portable [RubyInstaller](https://rubyinstaller.org)
+archive into jekylldown’s isolated toolchain directory and installs the
+jekyll and bundler gems there; deleting that one directory uninstalls
+everything. If a gem ever complains about missing development tools,
+re-run as `install_ruby(devkit = TRUE)` to include the MSYS2 compiler
+toolchain.
 
 ### Linux
 
@@ -173,8 +191,8 @@ identity, social profiles and — with `publications = "bib"` (the default
 on al-folio) — a publications page rebuilt from its DOIs, then reports
 everything that needs manual attention. All four themes are migration
 targets; each gets the pages, navigation, avatar and socials in its own
-convention. See the vignette:
-`vignette("migrate-blogdown-to-al-folio", package = "jekylldown")`.
+convention. See the vignette: `vignette("migrate-blogdown-to-al-folio",
+package = "jekylldown")`.
 
 ## Publishing
 
@@ -189,6 +207,8 @@ convention. See the vignette:
     site, any name for a project site.
 2.  Get a build workflow. al-folio and Chirpy already ship one; for
     minima, Minimal Mistakes and other themes, add the standard one:
+
+<!-- end list -->
 
 ``` r
 use_pages_workflow("mysite")   # writes .github/workflows/jekyll.yml
@@ -209,9 +229,9 @@ you want no remote build at all.
 command to `bundle exec jekyll build` with publish directory `_site`
 (both detect Jekyll and suggest exactly this).
 
-**GitLab Pages**: a minimal `.gitlab-ci.yml` that runs
-`bundle exec jekyll build -d public` in a Ruby image and publishes the
-`public` artifact.
+**GitLab Pages**: a minimal `.gitlab-ci.yml` that runs `bundle exec
+jekyll build -d public` in a Ruby image and publishes the `public`
+artifact.
 
 **Your own server / anything else**: `build_site()` and copy `_site/`
 over (`rsync -av _site/ server:/var/www/site/`). Static files, no
@@ -220,7 +240,7 @@ runtime.
 ## How it works
 
 | Where                            | What                                                                                                               |
-|----------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `_source/*.Rmd`, `*.qmd`         | posts in R Markdown/Quarto (the source; excluded from Jekyll)                                                      |
 | `_posts/*.md`                    | knitted output — an artifact, never edit by hand (unless the post has no `_source/` twin: then it *is* the source) |
 | `_pages/`, `_tabs/`, or the root | pages, in the active theme’s convention — edit directly; front matter controls the menu                            |

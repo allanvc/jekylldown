@@ -45,8 +45,10 @@ Quarto, and the current site if you are in one. Two important notes:
   and local `build_site()` builds.
 * jekylldown keeps everything it installs in an **isolated toolchain
   directory** (`tools::R_user_dir("jekylldown", "data")`) — nothing
-  system-wide, no shell configuration. `install_quarto()` puts the
-  Quarto CLI there; delete the directory to uninstall.
+  system-wide, no shell configuration. On Windows, `install_ruby()`
+  sets up Ruby and Jekyll there in one call (on Linux/macOS use your
+  package manager, see the README); `install_quarto()` puts the Quarto
+  CLI there too. Delete the directory to uninstall.
 
 ## 2. Create a site
 
