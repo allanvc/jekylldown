@@ -4,7 +4,7 @@
 \alias{install_ruby}
 \title{Install Ruby and Jekyll into jekylldown's isolated toolchain (Windows)}
 \usage{
-install_ruby(file = NULL, devkit = FALSE, version = NULL)
+install_ruby(file = NULL, devkit = TRUE, version = NULL)
 }
 \arguments{
 \item{file}{Optional path to an already-downloaded
@@ -14,9 +14,9 @@ lookup uses the GitHub API; on networks where \code{api.github.com} is
 unreachable, a known-good pinned release is downloaded directly
 from \code{github.com} instead.)}
 
-\item{devkit}{Also set up the MSYS2 toolchain (via \verb{ridk install}),
-needed only for gems that compile C extensions on install?
-Default \code{FALSE}.}
+\item{devkit}{Set up the MSYS2 toolchain (via \verb{ridk install}), which
+gems with C extensions -- including Jekyll's own dependency
+\samp{eventmachine} -- need at install time? Default \code{TRUE}.}
 
 \item{version}{Optional RubyInstaller release to install instead of
 the latest, as tagged upstream (e.g. \code{"3.3.7-1"}).}
@@ -38,12 +38,12 @@ is touched; uninstall by deleting the data directory. \code{\link[=build_site]{b
 Unpacking the \verb{.7z} archive needs the \pkg{archive} package
 (\code{install.packages("archive")}).
 
-Most gems jekylldown's themes use ship precompiled Windows binaries.
-If a \verb{gem install}/\code{\link[=bundle_install]{bundle_install()}} ever fails complaining about a
-missing compiler ("you have to install development tools first"),
-re-run with \code{devkit = TRUE}: after unpacking Ruby it runs
-RubyInstaller's \verb{ridk install} to add the MSYS2 build tools (a large
-extra download).
+The MSYS2 build tools are set up by default (\code{devkit = TRUE}, via
+RubyInstaller's \verb{ridk install}): Jekyll depends on the
+\samp{eventmachine} gem, which has no precompiled binary for current
+Rubies and must be compiled at install time. \code{devkit = FALSE} skips
+that large download for the rare setups that already have a working
+MSYS2 toolchain.
 
 On Linux and macOS install Ruby with your package manager instead (see
 the README's prerequisites); jekylldown picks it up from the \code{PATH}.

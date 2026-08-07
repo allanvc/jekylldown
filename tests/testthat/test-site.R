@@ -4,6 +4,9 @@ test_that("slugify produces clean slugs", {
 })
 
 test_that("new_site expands ~ so external tools never see it", {
+  # on Windows R resolves ~ from R_USER, fixed at startup -- the HOME
+  # override below cannot redirect it, so the fixture cannot work there
+  skip_on_os("windows")
   fake_home <- withr::local_tempdir()
   withr::local_envvar(c(HOME = fake_home))
   old_wd <- withr::local_tempdir()
@@ -36,7 +39,8 @@ test_that("new_site + new_post + knit pipeline work end to end (no Ruby)", {
 
   knitted <- build_site(site, local_jekyll = FALSE)
   out <- file.path(site, "_posts", "2026-08-03-my-first-post.md")
-  expect_equal(knitted, out)
+  # normalized: Windows mixes separators and 8.3 short names otherwise
+  expect_equal(normalizePath(knitted), normalizePath(out))
   md <- readLines(out)
   expect_equal(md[1], "---")           # front matter preserved
   expect_true(any(grepl("Two plus two is 4", md)))

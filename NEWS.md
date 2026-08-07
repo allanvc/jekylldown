@@ -1,3 +1,18 @@
+# jekylldown 0.1.18
+
+* When `api.github.com` is unreachable, the latest release is now
+  discovered from the `releases/latest` page on `github.com` itself
+  (the same host the archive downloads from) before resorting to the
+  pinned fallback, and the DNS warning noise is suppressed.
+* First real-Windows CI run, three fixes fed back from it:
+  `install_ruby()` now sets up the MSYS2 build tools by default
+  (`devkit = TRUE`) -- Jekyll depends on the eventmachine gem, which
+  has no precompiled binary for current Rubies and failed to compile
+  without a proper toolchain; two test expectations compare normalized
+  paths (Windows mixes separators and 8.3 short names); the tilde
+  expansion test is skipped on Windows, where `R_USER` is fixed at
+  startup and the fixture's `HOME` override cannot take effect.
+
 # jekylldown 0.1.17
 
 * `install_ruby()` no longer depends on `api.github.com` being

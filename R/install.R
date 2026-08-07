@@ -12,12 +12,12 @@
 #' Unpacking the `.7z` archive needs the \pkg{archive} package
 #' (`install.packages("archive")`).
 #'
-#' Most gems jekylldown's themes use ship precompiled Windows binaries.
-#' If a `gem install`/[bundle_install()] ever fails complaining about a
-#' missing compiler ("you have to install development tools first"),
-#' re-run with `devkit = TRUE`: after unpacking Ruby it runs
-#' RubyInstaller's `ridk install` to add the MSYS2 build tools (a large
-#' extra download).
+#' The MSYS2 build tools are set up by default (`devkit = TRUE`, via
+#' RubyInstaller's `ridk install`): Jekyll depends on the
+#' \samp{eventmachine} gem, which has no precompiled binary for current
+#' Rubies and must be compiled at install time. `devkit = FALSE` skips
+#' that large download for the rare setups that already have a working
+#' MSYS2 toolchain.
 #'
 #' On Linux and macOS install Ruby with your package manager instead (see
 #' the README's prerequisites); jekylldown picks it up from the `PATH`.
@@ -28,9 +28,9 @@
 #'   lookup uses the GitHub API; on networks where `api.github.com` is
 #'   unreachable, a known-good pinned release is downloaded directly
 #'   from `github.com` instead.)
-#' @param devkit Also set up the MSYS2 toolchain (via `ridk install`),
-#'   needed only for gems that compile C extensions on install?
-#'   Default `FALSE`.
+#' @param devkit Set up the MSYS2 toolchain (via `ridk install`), which
+#'   gems with C extensions -- including Jekyll's own dependency
+#'   \samp{eventmachine} -- need at install time? Default `TRUE`.
 #' @param version Optional RubyInstaller release to install instead of
 #'   the latest, as tagged upstream (e.g. `"3.3.7-1"`).
 #' @return The path to the installed `jekyll` command, invisibly.
@@ -42,7 +42,7 @@
 #' install_ruby(file = "C:/Users/me/Downloads/rubyinstaller-3.3.7-1-x64.7z")
 #' }
 #' @export
-install_ruby <- function(file = NULL, devkit = FALSE, version = NULL) {
+install_ruby <- function(file = NULL, devkit = TRUE, version = NULL) {
   if (!identical(.Platform$OS.type, "windows")) {
     cli::cli_abort(c(
       "Automatic Ruby install is for Windows, which has no package
@@ -151,20 +151,36 @@ ri_pinned_url <- function(version) {
           version, version)
 }
 
-# The newest release's archive URL via the GitHub API, falling back to
-# the pinned release when the API cannot be reached.
+# The newest release's archive URL. Tried in order: the GitHub API;
+# the releases/latest page on github.com itself (some networks resolve
+# github.com, where the archives also live, but not api.github.com);
+# the pinned known-good release.
 ri_latest_url <- function() {
-  api <- "https://api.github.com/repos/oneclick/rubyinstaller2/releases/latest"
-  release <- tryCatch(
-    paste(readLines(api, warn = FALSE), collapse = "\n"),
+  fetch <- function(url) tryCatch(
+    suppressWarnings(paste(readLines(url, warn = FALSE), collapse = "\n")),
     error = function(e) NULL)
-  if (!is.null(release)) return(ri_pick_asset(release))
+
+  api <- fetch(
+    "https://api.github.com/repos/oneclick/rubyinstaller2/releases/latest")
+  if (!is.null(api)) return(ri_pick_asset(api))
+
+  html <- fetch(
+    "https://github.com/oneclick/rubyinstaller2/releases/latest")
+  version <- if (!is.null(html)) ri_tag_version(html)
+  if (length(version)) return(ri_pinned_url(version))
+
   cli::cli_warn(
-    "Could not reach the GitHub API to find the latest RubyInstaller
-     release; using the known-good RubyInstaller
-     {ri_fallback_version} instead (pass {.arg version} to choose
-     another one).")
+    "Could not reach GitHub to find the latest RubyInstaller release;
+     using the known-good RubyInstaller {ri_fallback_version} instead
+     (pass {.arg version} to choose another one).")
   ri_pinned_url(ri_fallback_version)
+}
+
+# "RubyInstaller-4.0.6-1" somewhere in the releases/latest page ->
+# "4.0.6-1"; character(0) when no tag is found.
+ri_tag_version <- function(html) {
+  tag <- regmatches(html, regexpr("RubyInstaller-[0-9][0-9.]*-[0-9]+", html))
+  sub("^RubyInstaller-", "", tag)
 }
 
 # Pick the portable .7z asset out of a rubyinstaller2 release JSON.

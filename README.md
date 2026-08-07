@@ -63,13 +63,12 @@ jekylldown::install_ruby()
 ```
 
 It downloads the portable [RubyInstaller](https://rubyinstaller.org)
-archive into jekylldown’s isolated toolchain directory and installs the
-jekyll and bundler gems there; deleting that one directory uninstalls
-everything. If a gem ever complains about missing development tools,
-re-run as `install_ruby(devkit = TRUE)` to add the MSYS2 compiler
-toolchain. On networks where the GitHub API is blocked, a known-good
-pinned release is fetched directly from `github.com`; fully offline,
-download the `.7z` from
+archive into jekylldown’s isolated toolchain directory, adds the MSYS2
+build tools (Jekyll’s own dependencies need a compiler on Windows — a
+large but one-time download) and installs the jekyll and bundler gems
+there; deleting that one directory uninstalls everything. On networks
+where the GitHub API is blocked, a known-good pinned release is fetched
+directly from `github.com`; fully offline, download the `.7z` from
 [rubyinstaller.org](https://rubyinstaller.org/downloads/) and pass it as
 `file =`.
 

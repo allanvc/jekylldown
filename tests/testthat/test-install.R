@@ -16,6 +16,11 @@ test_that("RubyInstaller URLs are resolved correctly", {
   expect_equal(
     ri_pinned_url("3.3.7-1"),
     paste0(base, "/RubyInstaller-3.3.7-1/rubyinstaller-3.3.7-1-x64.7z"))
+
+  # the version parsed out of the releases/latest page on github.com
+  html <- '<a href="/oneclick/rubyinstaller2/releases/tag/RubyInstaller-4.0.6-1">'
+  expect_equal(ri_tag_version(html), "4.0.6-1")
+  expect_length(ri_tag_version("<html>nothing here</html>"), 0)
 })
 
 test_that("shell_cmd routes .bat/.cmd through cmd.exe on Windows", {

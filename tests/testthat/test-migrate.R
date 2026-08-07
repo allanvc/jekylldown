@@ -172,8 +172,12 @@ test_that("migrate_hugo converts posts, assets and front matter", {
   # braces cannot abort Jekyll's build) and is flagged in the report
   expect_true(any(grepl("tweet 123", md, fixed = TRUE)))
   expect_true(any(grepl("{% raw %}", md, fixed = TRUE)))
-  expect_equal(report$drafts, toml)
-  expect_true("tweet" %in% report$shortcodes[[toml]])
+  # compare normalized: on Windows the two sides can differ in path
+  # separators and 8.3 short names (RUNNER~1 vs runneradmin)
+  expect_equal(normalizePath(report$drafts), normalizePath(toml))
+  key <- names(report$shortcodes)[
+    normalizePath(names(report$shortcodes)) == normalizePath(toml)]
+  expect_true("tweet" %in% report$shortcodes[[key]])
 
   # Rmd post goes to _source with the slug from front matter; artifact skipped
   expect_true(file.exists(file.path(site, "_source",
