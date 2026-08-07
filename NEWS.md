@@ -1,3 +1,16 @@
+# jekylldown 0.1.19
+
+* Re-running `install_ruby()` is now cheap: a working provisioned Ruby
+  is reused (no re-download; `force = TRUE` starts over) and
+  already-installed gems are skipped (`gem install --conservative`), so
+  the function doubles as "complete whatever is missing".
+* `install_ruby()` also installs the minima gem: the second Windows CI
+  run got all the way through Ruby, MSYS2 and Jekyll, then failed
+  building the scaffolded default site because the theme gem was
+  missing. The README's Linux/macOS `gem install` one-liners gained
+  minima too -- a fresh toolchain set up from those instructions had
+  the same gap on every platform.
+
 # jekylldown 0.1.18
 
 * When `api.github.com` is unreachable, the latest release is now

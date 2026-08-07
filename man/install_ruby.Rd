@@ -4,7 +4,7 @@
 \alias{install_ruby}
 \title{Install Ruby and Jekyll into jekylldown's isolated toolchain (Windows)}
 \usage{
-install_ruby(file = NULL, devkit = TRUE, version = NULL)
+install_ruby(file = NULL, devkit = TRUE, version = NULL, force = FALSE)
 }
 \arguments{
 \item{file}{Optional path to an already-downloaded
@@ -20,6 +20,12 @@ gems with C extensions -- including Jekyll's own dependency
 
 \item{version}{Optional RubyInstaller release to install instead of
 the latest, as tagged upstream (e.g. \code{"3.3.7-1"}).}
+
+\item{force}{Re-download Ruby even when the toolchain directory
+already holds a working one? Default \code{FALSE}: re-running the
+function reuses the provisioned Ruby and only completes what is
+missing (MSYS2 pieces, gems -- already-installed gems are
+skipped).}
 }
 \value{
 The path to the installed \code{jekyll} command, invisibly.
@@ -29,8 +35,8 @@ Windows has no system package manager to get Ruby from, so this
 function does the whole setup: it downloads the portable RubyInstaller
 archive (a \verb{.7z}, no graphical installer, no registry entries), unpacks
 it under \code{tools::R_user_dir("jekylldown", "data")/ruby}, and installs
-the \strong{jekyll} and \strong{bundler} gems into the package's isolated gem
-directory. Nothing is installed system-wide and no shell configuration
+the \strong{jekyll}, \strong{bundler} and \strong{minima} (the default theme) gems
+into it. Nothing is installed system-wide and no shell configuration
 is touched; uninstall by deleting the data directory. \code{\link[=build_site]{build_site()}},
 \code{\link[=serve_site]{serve_site()}} and \code{\link[=check]{check()}} find this toolchain automatically.
 }

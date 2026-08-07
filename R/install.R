@@ -4,8 +4,8 @@
 #' function does the whole setup: it downloads the portable RubyInstaller
 #' archive (a `.7z`, no graphical installer, no registry entries), unpacks
 #' it under `tools::R_user_dir("jekylldown", "data")/ruby`, and installs
-#' the **jekyll** and **bundler** gems into the package's isolated gem
-#' directory. Nothing is installed system-wide and no shell configuration
+#' the **jekyll**, **bundler** and **minima** (the default theme) gems
+#' into it. Nothing is installed system-wide and no shell configuration
 #' is touched; uninstall by deleting the data directory. [build_site()],
 #' [serve_site()] and [check()] find this toolchain automatically.
 #'
@@ -33,6 +33,11 @@
 #'   \samp{eventmachine} -- need at install time? Default `TRUE`.
 #' @param version Optional RubyInstaller release to install instead of
 #'   the latest, as tagged upstream (e.g. `"3.3.7-1"`).
+#' @param force Re-download Ruby even when the toolchain directory
+#'   already holds a working one? Default `FALSE`: re-running the
+#'   function reuses the provisioned Ruby and only completes what is
+#'   missing (MSYS2 pieces, gems -- already-installed gems are
+#'   skipped).
 #' @return The path to the installed `jekyll` command, invisibly.
 #' @examples
 #' \dontrun{
@@ -42,7 +47,8 @@
 #' install_ruby(file = "C:/Users/me/Downloads/rubyinstaller-3.3.7-1-x64.7z")
 #' }
 #' @export
-install_ruby <- function(file = NULL, devkit = TRUE, version = NULL) {
+install_ruby <- function(file = NULL, devkit = TRUE, version = NULL,
+                         force = FALSE) {
   if (!identical(.Platform$OS.type, "windows")) {
     cli::cli_abort(c(
       "Automatic Ruby install is for Windows, which has no package
@@ -59,42 +65,50 @@ install_ruby <- function(file = NULL, devkit = TRUE, version = NULL) {
              {.fn install_ruby} again."))
   }
 
-  if (is.null(file)) {
-    url <- if (!is.null(version)) {
-      ri_pinned_url(version)
-    } else {
-      ri_latest_url()
-    }
-    file <- tempfile(fileext = ".7z")
-    on.exit(unlink(file), add = TRUE)
-    cli::cli_alert_info("Downloading {.url {url}} ...")
-    status <- tryCatch(
-      utils::download.file(url, file, mode = "wb", quiet = TRUE),
-      error = function(e) conditionMessage(e))
-    if (!identical(status, 0L)) {
-      cli::cli_abort(c(
-        "Could not download {.url {url}}
-         ({if (is.character(status)) status else paste('status', status)}).",
-        "i" = "Behind a proxy or firewall? Download the {.file .7z}
-               archive from {.url https://rubyinstaller.org/downloads/}
-               in your browser and pass its path as {.arg file}."))
-    }
-  }
-
-  exdir <- tempfile("ruby-install-")
-  on.exit(unlink(exdir, recursive = TRUE), add = TRUE)
-  cli::cli_alert_info("Unpacking (this can take a few minutes) ...")
-  archive::archive_extract(file, dir = exdir)
-  top <- list.dirs(exdir, recursive = FALSE)
-  if (length(top) != 1) {
-    cli::cli_abort("Unexpected archive layout: expected one top-level
-                    directory, found {length(top)}.")
-  }
-
   dest <- file.path(jd_data_dir(), "ruby")
-  if (dir.exists(dest)) unlink(dest, recursive = TRUE)
-  fs::dir_create(dirname(dest))
-  fs::dir_copy(top, dest)
+  reuse <- !force && is.null(file) && is.null(version) &&
+    dir.exists(file.path(dest, "bin")) && !is.null(cmd_version("ruby"))
+  if (reuse) {
+    cli::cli_alert_info(
+      "Ruby already provisioned at {.path {dest}} -- reusing it and only
+       completing the toolchain (re-download with {.code force = TRUE}).")
+  } else {
+    if (is.null(file)) {
+      url <- if (!is.null(version)) {
+        ri_pinned_url(version)
+      } else {
+        ri_latest_url()
+      }
+      file <- tempfile(fileext = ".7z")
+      on.exit(unlink(file), add = TRUE)
+      cli::cli_alert_info("Downloading {.url {url}} ...")
+      status <- tryCatch(
+        utils::download.file(url, file, mode = "wb", quiet = TRUE),
+        error = function(e) conditionMessage(e))
+      if (!identical(status, 0L)) {
+        cli::cli_abort(c(
+          "Could not download {.url {url}}
+           ({if (is.character(status)) status else paste('status', status)}).",
+          "i" = "Behind a proxy or firewall? Download the {.file .7z}
+                 archive from {.url https://rubyinstaller.org/downloads/}
+                 in your browser and pass its path as {.arg file}."))
+      }
+    }
+
+    exdir <- tempfile("ruby-install-")
+    on.exit(unlink(exdir, recursive = TRUE), add = TRUE)
+    cli::cli_alert_info("Unpacking (this can take a few minutes) ...")
+    archive::archive_extract(file, dir = exdir)
+    top <- list.dirs(exdir, recursive = FALSE)
+    if (length(top) != 1) {
+      cli::cli_abort("Unexpected archive layout: expected one top-level
+                      directory, found {length(top)}.")
+    }
+
+    if (dir.exists(dest)) unlink(dest, recursive = TRUE)
+    fs::dir_create(dirname(dest))
+    fs::dir_copy(top, dest)
+  }
 
   if (devkit) {
     ridk <- find_cmd("ridk")
@@ -118,14 +132,15 @@ install_ruby <- function(file = NULL, devkit = TRUE, version = NULL) {
     cli::cli_abort("The archive did not contain a {.code gem} command
                     under {.path bin/}.")
   }
-  cli::cli_alert_info("Installing the {.pkg jekyll} and {.pkg bundler}
-                       gems ...")
-  sc <- shell_cmd(gem, c("install", "--no-document", "jekyll", "bundler"))
+  cli::cli_alert_info("Installing the {.pkg jekyll}, {.pkg bundler} and
+                       {.pkg minima} gems ...")
+  sc <- shell_cmd(gem, c("install", "--conservative", "--no-document",
+                         "jekyll", "bundler", "minima"))
   res <- processx::run(sc$cmd, sc$args, env = c("current", jd_env()),
                        echo = TRUE, error_on_status = FALSE)
   if (res$status != 0) {
     cli::cli_abort(c(
-      "{.code gem install jekyll bundler} failed (exit status
+      "{.code gem install jekyll bundler minima} failed (exit status
        {res$status}).",
       if (!devkit) c("i" = "If the error mentions development tools or a
                             compiler, re-run with

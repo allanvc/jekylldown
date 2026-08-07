@@ -78,7 +78,7 @@ With admin rights (Debian/Ubuntu shown):
 
 ``` sh
 sudo apt install ruby-full build-essential
-gem install --user-install jekyll bundler
+gem install --user-install jekyll bundler minima
 ```
 
 Without admin rights, use the fully isolated toolchain (conda-forge Ruby
@@ -92,7 +92,7 @@ curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest \
   | tar -xj -C "$DATA" bin/micromamba
 "$DATA/bin/micromamba" create -y -p "$DATA/ruby" \
   -c conda-forge ruby c-compiler cxx-compiler make
-PATH="$DATA/ruby/bin:$PATH" gem install --no-document jekyll bundler
+PATH="$DATA/ruby/bin:$PATH" gem install --no-document jekyll bundler minima
 ```
 
 jekylldown auto-detects a toolchain in that directory and injects
@@ -108,7 +108,7 @@ Tools for gems with native extensions):
 xcode-select --install   # if not already installed
 brew install ruby
 echo 'export PATH="$(brew --prefix ruby)/bin:$PATH"' >> ~/.zshrc && exec zsh
-gem install --user-install jekyll bundler
+gem install --user-install jekyll bundler minima
 ```
 
 ### Windows
@@ -120,7 +120,7 @@ to your PATH”* during setup and run the final `ridk install` step it
 offers. Then, in a new terminal:
 
 ``` sh
-gem install jekyll bundler
+gem install jekyll bundler minima
 ```
 
 ### Verify
