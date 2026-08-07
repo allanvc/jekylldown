@@ -287,12 +287,14 @@ test_that("serve_rebuild knits Rmd and qmd and runs the build command", {
   xfun::write_utf8(c("---", "title: R post", "---", "", "Hi `r 1 + 1`."),
                    file.path(site, "_source", "2026-08-05-r-post.Rmd"))
 
-  jekylldown:::serve_rebuild(site, "touch built.marker")
+  ok <- list(cmd = "touch", args = "built.marker", env = character())
+  serve_rebuild(site, ok)
   expect_true(file.exists(file.path(site, "_posts", "2026-08-05-r-post.md")))
   expect_true(file.exists(file.path(site, "built.marker")))
 
   # a failing command warns but does not error (the server must survive)
-  expect_warning(jekylldown:::serve_rebuild(site, "false"), "failed")
+  bad <- list(cmd = "false", args = character(), env = character())
+  expect_warning(serve_rebuild(site, bad), "failed")
 })
 
 test_that("jekyll_baseurl reads baseurl from _config.yml", {
@@ -415,4 +417,22 @@ test_that("site_root() guides the user when called outside a site", {
   expect_error(site_root(not_a_site), "pass its\\s+path explicitly")
   expect_error(site_root(file.path(not_a_site, "nope")),
                "does not exist")
+})
+
+test_that("serve_build_command adapts to the site's bundler state", {
+  site <- withr::local_tempdir()
+  writeLines("title: x", file.path(site, "_config.yml"))
+  withr::local_options(jekylldown.jekyll = "/fake/jekyll")
+
+  # no Gemfile: plain jekyll build, no extra environment
+  cmd <- serve_build_command(site)
+  expect_equal(cmd$cmd, "/fake/jekyll")
+  expect_equal(cmd$args, "build")
+  expect_length(cmd$env, 0)
+
+  # Gemfile without lockfile: jekyll's bundler escape hatch, passed as
+  # real environment (a "VAR=x cmd" prefix would break on Windows)
+  writeLines("source 'https://rubygems.org'", file.path(site, "Gemfile"))
+  cmd <- serve_build_command(site)
+  expect_equal(cmd$env, c(JEKYLL_NO_BUNDLER_REQUIRE = "true"))
 })

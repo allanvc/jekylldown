@@ -112,21 +112,8 @@ serve_site <- function(dir = ".", background = interactive(), port = NULL,
 # The in-process implementation (used directly with background = FALSE,
 # and by the background worker).
 serve_impl <- function(root, port, ...) {
-  # the build command runs via system(); make sure it inherits our
-  # GEM_HOME/PATH by exporting them into this session.
   jd_set_env()
-  jekyll <- jekyll_cmd()
-  bundle <- find_cmd("bundle")
-  command <- if (file.exists(file.path(root, "Gemfile.lock")) &&
-                   !is.null(bundle)) {
-    paste(shQuote(bundle), "exec", "jekyll", "build")
-  } else if (file.exists(file.path(root, "Gemfile"))) {
-    # Gemfile without lockfile: stop jekyll from Bundler.setup-ing and
-    # crashing on version skew (run bundle_install() for the real thing)
-    paste("JEKYLL_NO_BUNDLER_REQUIRE=true", shQuote(jekyll), "build")
-  } else {
-    paste(shQuote(jekyll), "build")
-  }
+  command <- serve_build_command(root)
 
   serve_rebuild(root, command, first = TRUE)
   # `watch` MUST be an absolute path: servr evaluates its watcher lazily
@@ -153,6 +140,25 @@ serve_worker <- function(root, port) {
   serve_impl(root, port = port, daemon = FALSE, browser = FALSE)
 }
 
+# How to run `jekyll build` for this site, as command + args + extra
+# environment (env prefixes in a command string are POSIX-shell only,
+# and .bat/.cmd wrappers need cmd.exe -- both handled at run time).
+serve_build_command <- function(root) {
+  jekyll <- jekyll_cmd()
+  bundle <- find_cmd("bundle")
+  if (file.exists(file.path(root, "Gemfile.lock")) && !is.null(bundle)) {
+    list(cmd = bundle, args = c("exec", "jekyll", "build"),
+         env = character())
+  } else if (file.exists(file.path(root, "Gemfile"))) {
+    # Gemfile without lockfile: stop jekyll from Bundler.setup-ing and
+    # crashing on version skew (run bundle_install() for the real thing)
+    list(cmd = jekyll, args = "build",
+         env = c(JEKYLL_NO_BUNDLER_REQUIRE = "true"))
+  } else {
+    list(cmd = jekyll, args = "build", env = character())
+  }
+}
+
 # One watcher round: re-knit whatever is outdated, then `jekyll build`
 # -- quietly: one status line per rebuild instead of the full jekyll
 # echo. A knitting or build error during serving is reported but must
@@ -161,12 +167,16 @@ serve_rebuild <- function(root, command, first = FALSE) {
   run <- function() {
     t0 <- Sys.time()
     knitted <- knit_all(root, quiet = TRUE)
-    null_dev <- if (identical(.Platform$OS.type, "windows")) "NUL"
-                else "/dev/null"
-    status <- system(paste(command, ">", null_dev, "2>&1"))
+    sc <- shell_cmd(command$cmd, command$args)
+    env <- c("current", jd_env(), command$env)
+    res <- processx::run(sc$cmd, sc$args, wd = root, env = env,
+                         stdout = NULL, stderr = NULL,
+                         error_on_status = FALSE)
+    status <- res$status
     if (status != 0) {
       # rerun visibly so the error is in the log/console
-      system(command)
+      processx::run(sc$cmd, sc$args, wd = root, env = env,
+                    echo = TRUE, error_on_status = FALSE)
       cli::cli_warn("{.code jekyll build} failed; fix and save again.")
     } else {
       secs <- round(as.numeric(Sys.time() - t0, units = "secs"), 1)

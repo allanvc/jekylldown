@@ -1,3 +1,16 @@
+# jekylldown 0.2.0
+
+* `serve_site()` works on Windows: the build command was assembled as a
+  shell string with a POSIX-only `VAR=value` environment prefix and a
+  `/dev/null`-style redirect, which Windows cannot run ("
+  'JEKYLL_NO_BUNDLER_REQUIRE=true' not found"). Rebuilds now go through
+  processx with the environment passed properly, the output silenced
+  without a shell redirect, and `.bat`/`.cmd` wrappers routed through
+  `cmd.exe` -- on every platform.
+* The Windows CI smoke test now also starts (and stops) a background
+  `serve_site()`, so the serving path is exercised on a real Windows
+  from here on.
+
 # jekylldown 0.1.19
 
 * Re-running `install_ruby()` is now cheap: a working provisioned Ruby

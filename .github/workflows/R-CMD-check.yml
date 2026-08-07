@@ -38,13 +38,16 @@ jobs:
           use-public-rspm: true
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::archive, any::pkgload
-      - name: install_ruby, scaffold and build a site
+          extra-packages: any::archive
+      - name: install_ruby, scaffold, build and serve a site
         shell: Rscript {0}
         run: |
-          pkgload::load_all(".")
+          install.packages(".", repos = NULL, type = "source")
+          library(jekylldown)
           install_ruby()
           check()
           new_site("smoke", theme = "minima")
           build_site("smoke")
           stopifnot(file.exists("smoke/_site/index.html"))
+          serve_site("smoke", background = TRUE)
+          stop_server("smoke")
