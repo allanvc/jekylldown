@@ -258,15 +258,23 @@ need something the maps do not offer.
 1. Push the site to a repository named `youruser.github.io` (include
    `_source/` -- it is excluded from the Jekyll build but belongs in
    version control).
-2. For al-folio and Chirpy: in the repository settings, set GitHub Pages
-   to build with **GitHub Actions** -- both themes ship the workflow
-   (al-folio: `.github/workflows/deploy.yml`; Chirpy:
-   `pages-deploy.yml`), so every push builds and publishes the site.
+2. al-folio and Chirpy ship their own deploy workflow, but they
+   publish differently, so point Pages (repository settings) at the
+   matching source:
+   - **Chirpy** (`pages-deploy.yml`): *Pages > Source: GitHub
+     Actions*.
+   - **al-folio** (`deploy.yml`): its workflow pushes the built site
+     to a `gh-pages` branch -- *Pages > Source: Deploy from a branch >
+     gh-pages / (root)*. With "GitHub Actions" selected the workflow
+     runs green but the site never updates.
+
    For themes without a bundled workflow (minima, Minimal Mistakes),
-   `use_pages_workflow("my-site")` writes the standard one; commit the
-   `Gemfile.lock` from `bundle_install()` so the workflow can cache
-   gems. (minima also works with the classic Pages branch build,
-   no Actions needed.)
+   `use_pages_workflow("my-site")` writes the standard one (*Source:
+   GitHub Actions*); commit the `Gemfile.lock` from `bundle_install()`
+   so the workflows can cache gems. (minima also works with the
+   classic Pages branch build, no Actions needed.) If the first push
+   replaced the branch history (a fresh `git init`), trigger the first
+   workflow run by hand: *Actions > the workflow > Run workflow*.
    Other hosts work too -- `_site/` is plain static files; see the
    README's *Publishing* section for Netlify, Cloudflare, GitLab and
    self-hosted setups.

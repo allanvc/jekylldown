@@ -70,7 +70,7 @@ new_site <- function(dir, theme = c("minima", "al-folio", "chirpy",
 
   root <- normalizePath(dir)
   fs::dir_create(file.path(root, c("_source", "_posts", "assets/img/posts")))
-  add_exclude(file.path(root, "_config.yml"), c("_source", "build.R"))
+  add_exclude(file.path(root, "_config.yml"), c("_source", "build.R", "*.Rproj"))
   ensure_serve_gitignore(root)
   # gem-based themes may not have their gems yet (bundle_install comes
   # later) -- the credit can always be added afterwards by hand
@@ -301,6 +301,28 @@ site_source_text <- function(dir) {
   paste(txt[!grepl("^\\s*#", txt)], collapse = "\n")
 }
 
+# Remove one gem from a Gemfile.lock: its specs block (the 4-space
+# entry plus deeper-indented dependency lines) and its DEPENDENCIES /
+# CHECKSUMS entries (2-space indent). Keeps bundler's frozen mode happy
+# after the gem leaves the Gemfile, without a full re-resolution.
+drop_gem_from_lock <- function(dir, gem) {
+  lock <- file.path(dir, "Gemfile.lock")
+  if (!file.exists(lock)) return(invisible(FALSE))
+  lines <- xfun::read_utf8(lock)
+  drop <- rep(FALSE, length(lines))
+  for (b in grep(sprintf("^    %s \\(", gem), lines)) {
+    drop[b] <- TRUE
+    j <- b + 1
+    while (j <= length(lines) && grepl("^      ", lines[j])) {
+      drop[j] <- TRUE
+      j <- j + 1
+    }
+  }
+  drop[grepl(sprintf("^  %s( \\(|!?$)", gem), lines)] <- TRUE
+  if (any(drop)) xfun::write_utf8(lines[!drop], lock)
+  invisible(any(drop))
+}
+
 # Hidden files/directories a template can ship that have no business in
 # a user's site (editor and CI configs, symlinked
 # tooling dirs Windows cannot even extract, and so on) -- everything except the
@@ -373,6 +395,10 @@ scrub_al_folio_demo <- function(dir) {
     lines <- xfun::read_utf8(gemfile)
     xfun::write_utf8(lines[!grepl("jekyll-jupyter-notebook", lines)], gemfile)
   }
+  # the template ships a Gemfile.lock; leaving the dropped gem declared
+  # there makes deploy workflows fail (bundler's frozen mode refuses a
+  # Gemfile/lock mismatch)
+  drop_gem_from_lock(dir, "jekyll-jupyter-notebook")
   lines <- xfun::read_utf8(config)
   xfun::write_utf8(lines[!grepl("^\\s*-\\s*jekyll-jupyter-notebook\\s*$",
                                 lines)], config)
@@ -432,9 +458,13 @@ set_block_value <- function(lines, block, key, value) {
 add_exclude <- function(config, entries) {
   lines <- xfun::read_utf8(config)
   listed <- sub("^\\s*-\\s*", "", trimws(lines[grepl("^\\s*-\\s", lines)]))
+  listed <- gsub('^"|"$', "", listed)
   entries <- setdiff(entries, listed)
   if (!length(entries)) return(invisible(config))
-  new <- paste0("  - ", entries)
+  # globs like *.Rproj must be quoted: a bare leading * is a YAML alias
+  quoted <- ifelse(grepl("^[*&!?]", entries),
+                   sprintf('"%s"', entries), entries)
+  new <- paste0("  - ", quoted)
   i <- grep("^exclude:\\s*$", lines)
   if (length(i)) {
     lines <- append(lines, new, after = i[1])

@@ -1,3 +1,21 @@
+# jekylldown 0.3.1
+
+* Scaffolded and migrated sites exclude `*.Rproj` from the Jekyll
+  build -- RStudio project files were being copied into the published
+  site.
+* Publishing docs corrected after the first real deploy: al-folio's
+  bundled workflow publishes to a gh-pages branch, so its GitHub Pages
+  source must be "Deploy from a branch: gh-pages" -- not "GitHub
+  Actions", which fits Chirpy's workflow and `use_pages_workflow()`'s.
+  The README and vignette also note that a history-replacing first
+  push does not match the workflows' paths filters (trigger the first
+  run by hand).
+* al-folio deploys on GitHub Actions no longer fail with "frozen mode"
+  Gemfile.lock errors: the scrub that drops the jekyll-jupyter-notebook
+  gem from the template's Gemfile now removes it from the shipped
+  Gemfile.lock too (specs, DEPENDENCIES and CHECKSUMS sections) --
+  found on the first real deploy of a migrated site.
+
 # jekylldown 0.3.0
 
 * Three migration fixes surfaced by inspecting every generated page of

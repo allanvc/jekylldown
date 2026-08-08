@@ -9,7 +9,10 @@
 #' al-folio and Chirpy already ship their own deploy workflow -- for
 #' those sites this function leaves it alone and tells you so. It is
 #' meant for the themes that do not (minima, Minimal Mistakes, most
-#' others).
+#' others). Mind the Pages source for the bundled ones: Chirpy's
+#' workflow publishes like this one (*Source: GitHub Actions*), but
+#' al-folio's pushes the built site to a `gh-pages` branch, so its
+#' Pages source must be *Deploy from a branch > gh-pages*.
 #'
 #' Note the division of labor: the workflow only runs `jekyll build`.
 #' Knitting stays local -- run [build_site()] (with

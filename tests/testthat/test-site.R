@@ -557,3 +557,36 @@ test_that("a post that fails to knit is skipped, not fatal", {
   expect_true(file.exists(file.path(site, "_posts", "2026-01-01-good.md")))
   expect_false(file.exists(file.path(site, "_posts", "2026-01-02-bad.md")))
 })
+
+test_that("drop_gem_from_lock removes every section of the gem", {
+  dir <- withr::local_tempdir()
+  xfun::write_utf8(c(
+    "GEM",
+    "  remote: https://rubygems.org/",
+    "  specs:",
+    "    jekyll (4.4.1)",
+    "      addressable (~> 2.4)",
+    "    jekyll-jupyter-notebook (0.0.6)",
+    "      jekyll",
+    "    kramdown (2.5.1)",
+    "",
+    "DEPENDENCIES",
+    "  jekyll",
+    "  jekyll-jupyter-notebook",
+    "  kramdown",
+    "",
+    "CHECKSUMS",
+    "  jekyll (4.4.1) sha256=aaa",
+    "  jekyll-jupyter-notebook (0.0.6) sha256=bbb",
+    "  kramdown (2.5.1) sha256=ccc"
+  ), file.path(dir, "Gemfile.lock"))
+
+  expect_true(drop_gem_from_lock(dir, "jekyll-jupyter-notebook"))
+  lock <- readLines(file.path(dir, "Gemfile.lock"))
+  expect_false(any(grepl("jupyter", lock)))
+  # neighbours intact, including jekyll's own dependency line
+  expect_true("    jekyll (4.4.1)" %in% lock)
+  expect_true("      addressable (~> 2.4)" %in% lock)
+  expect_true("  kramdown" %in% lock)
+  expect_true("  jekyll (4.4.1) sha256=aaa" %in% lock)
+})

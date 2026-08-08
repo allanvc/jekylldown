@@ -272,10 +272,20 @@ in its own convention. See the vignette:
 use_pages_workflow("mysite")   # writes .github/workflows/jekyll.yml
 ```
 
-3.  In the repository settings, set **Pages \> Source: GitHub Actions**
-    (once). Every push then builds and publishes. Commit the
-    `Gemfile.lock` from `bundle_install()` -- the workflow caches gems
-    from it.
+3.  Point Pages at the right source (once, in the repository settings)
+    -- **the two bundled workflows publish differently**:
+      - Chirpy's workflow and `use_pages_workflow()`'s use the official
+        Pages actions: set **Pages \> Source: GitHub Actions**.
+      - al-folio's workflow pushes the built site to a `gh-pages`
+        branch: set **Pages \> Source: Deploy from a branch \> gh-pages
+        / (root)** (with "GitHub Actions" selected the workflow runs
+        green but the site never updates).
+    Every push then builds and publishes. Commit the `Gemfile.lock` from
+    `bundle_install()` -- the workflows cache gems from it. One
+    first-publication quirk: a force-push that replaces the branch
+    history does not match the workflows' `paths` filters, so trigger
+    the first run by hand (Actions \> the workflow \> Run workflow) or
+    with any follow-up push.
 
 Two alternatives on GitHub: the classic branch build (Settings \> Pages
 \> Deploy from a branch) runs Jekyll for you but only with GitHub's
