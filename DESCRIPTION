@@ -3,7 +3,7 @@ Title: Create, Build and Serve 'Jekyll' Websites from 'R Markdown' and
     'Quarto'
 Version: 0.3.0
 Authors@R:
-    person("Allan V. C.", "Quadros", email = "allanvcq@gmail.com",
+    person("Allan", "Quadros", email = "allanvcq@gmail.com",
            role = c("aut", "cre"))
 Description: Do for 'Jekyll' what 'blogdown' does for 'Hugo': create sites
     from the most popular themes ('al-folio', 'Chirpy',

@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Allan V. C. Quadros \email{allanvcq@gmail.com}
+\strong{Maintainer}: Allan Quadros \email{allanvcq@gmail.com}
 
 }
 \keyword{internal}
