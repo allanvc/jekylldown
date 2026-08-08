@@ -225,6 +225,10 @@ add_css(".profile img { border-radius: 50%; }", id = "round-avatar")
 
 # LaTeX math rendering, the way each theme expects it
 add_mathjax()
+
+# footer credit ("Built from R with jekylldown X.Y.Z."); new_site()
+# adds it already, build_site() keeps the version current
+add_footer_credit()     # remove_footer_credit() undoes it
 ```
 
 `set_theme_color("red")` remains as a shorthand for setting the accent,

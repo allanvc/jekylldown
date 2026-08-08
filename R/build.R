@@ -25,6 +25,7 @@
 #' @export
 build_site <- function(dir = ".", local_jekyll = NULL, force = FALSE) {
   root <- site_root(dir)
+  refresh_footer_credit(root)
   knitted <- knit_all(root, force = force)
 
   if (is.null(local_jekyll)) local_jekyll <- !is.null(jekyll_cmd())

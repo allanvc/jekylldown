@@ -227,6 +227,10 @@ set_element_style("socials", size = "2rem")   # social icon row
 
 # 4. escape hatch: free-form CSS in a managed, removable block
 add_css(".profile img { border-radius: 50%; }", id = "avatar")
+
+# footer credit ("Built from R with jekylldown X.Y.Z."), added by
+# new_site() and version-refreshed by build_site()
+add_footer_credit()     # remove_footer_credit() undoes it
 ```
 
 To undo the accent, call `set_theme_color(NULL)`; deleting the

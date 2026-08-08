@@ -69,6 +69,10 @@ new_site <- function(dir, theme = c("minima", "al-folio", "chirpy",
   fs::dir_create(file.path(root, c("_source", "_posts", "assets/img/posts")))
   add_exclude(file.path(root, "_config.yml"), c("_source", "build.R"))
   ensure_serve_gitignore(root)
+  # gem-based themes may not have their gems yet (bundle_install comes
+  # later) -- the credit can always be added afterwards by hand
+  suppressMessages(tryCatch(add_footer_credit(root),
+                            error = function(e) invisible()))
   write_build_script(root)
   if (sample) write_sample_post(root)
 

@@ -1,3 +1,15 @@
+# jekylldown 0.2.5
+
+* Footer credit: `add_footer_credit()` inserts "Built from R with
+  jekylldown X.Y.Z." (linked) into the theme's own footer line --
+  right after the "Powered by Jekyll ..." sentence on al-folio (via
+  `footer_text:` in `_config.yml`), and as a managed block in a local
+  `_includes/footer.html` on minima, Chirpy and Minimal Mistakes.
+  `new_site()` adds it to fresh sites, `build_site()` keeps the
+  version number current on every build, and `remove_footer_credit()`
+  takes it out. Hosting claims ("Hosted by GitHub Pages") are the
+  theme's own `footer_text` defaults and stay untouched.
+
 # jekylldown 0.2.4
 
 * Faster live preview: `serve_site()` rebuilds content-only edits
