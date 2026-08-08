@@ -25,9 +25,12 @@ config, or let \code{\link[=migrate_hugo]{migrate_hugo()}} fill it).}
 \item{sample}{Create a sample \code{.Rmd} post in \verb{_source/}? Default \code{TRUE}.}
 
 \item{demo}{Keep the theme's demo content? Only al-folio ships demo
-content (sample posts, news, projects, books and an example
-biography); default \code{TRUE}, set to \code{FALSE} for a site that starts
-empty. \code{\link[=migrate_hugo]{migrate_hugo()}} always starts from a scrubbed site. The other
+content (sample posts, news, projects, books, an example biography
+and tens of MB of sample media); default \code{TRUE}, set to \code{FALSE}
+for a site that starts empty -- the scrub removes the demo pages
+and any demo media nothing in the site references, so what
+remains is your content plus what Jekyll and the theme need.
+\code{\link[=migrate_hugo]{migrate_hugo()}} always starts from a scrubbed site. The other
 themes start empty regardless.}
 }
 \value{

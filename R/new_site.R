@@ -26,9 +26,12 @@
 #'   config, or let [migrate_hugo()] fill it).
 #' @param sample Create a sample `.Rmd` post in `_source/`? Default `TRUE`.
 #' @param demo Keep the theme's demo content? Only al-folio ships demo
-#'   content (sample posts, news, projects, books and an example
-#'   biography); default `TRUE`, set to `FALSE` for a site that starts
-#'   empty. [migrate_hugo()] always starts from a scrubbed site. The other
+#'   content (sample posts, news, projects, books, an example biography
+#'   and tens of MB of sample media); default `TRUE`, set to `FALSE`
+#'   for a site that starts empty -- the scrub removes the demo pages
+#'   and any demo media nothing in the site references, so what
+#'   remains is your content plus what Jekyll and the theme need.
+#'   [migrate_hugo()] always starts from a scrubbed site. The other
 #'   themes start empty regardless.
 #' @return The normalized site path, invisibly.
 #' @examples
@@ -240,6 +243,64 @@ clone_template <- function(url, dir, label) {
 # tooling instructions) with their now-stale `exclude` entries, and
 # everything in .github except the workflow that builds and deploys the
 # site on GitHub Pages.
+# The demo media the al-folio template ships (tens of MB of sample
+# photos, videos, audio, notebooks and preview images). Removed by the
+# scrub unless something still standing in the site references them --
+# so a scrubbed or migrated site keeps only what came from the user's
+# own content plus what Jekyll and the theme need.
+scrub_al_folio_media <- function(dir) {
+  demo <- c(sprintf("assets/img/%s.jpg", 1:12),
+            "assets/img/rhino.png",
+            "assets/img/star-history-dark.svg",
+            "assets/img/star-history-light.svg",
+            "assets/img/template_error.png",
+            "assets/audio",
+            "assets/video",
+            "assets/jupyter",
+            "assets/pdf/example_pdf.pdf",
+            "assets/rendercv",
+            "assets/json/resume.json",
+            "assets/json/table_data.json",
+            "assets/html",
+            "assets/plotly")
+  refs <- site_source_text(dir)
+  for (rel in demo) {
+    if (!grepl(rel, refs, fixed = TRUE)) {
+      unlink(file.path(dir, rel), recursive = TRUE)
+    }
+  }
+  # preview and cover images are referenced from the bibliography by
+  # bare file name (preview={RQUF.jpeg}), so these two directories are
+  # pruned file by file and dropped only when nothing survives
+  for (d in file.path(dir, "assets", "img",
+                      c("publication_preview", "book_covers"))) {
+    if (!dir.exists(d)) next
+    for (f in list.files(d, full.names = TRUE)) {
+      if (!grepl(basename(f), refs, fixed = TRUE)) unlink(f)
+    }
+    if (!length(list.files(d, all.files = TRUE, no.. = TRUE))) {
+      unlink(d, recursive = TRUE)
+    }
+  }
+  invisible(dir)
+}
+
+# Everything the remaining site sources say, comments excluded --
+# the reference pool the media scrub checks against.
+site_source_text <- function(dir) {
+  dirs <- file.path(dir, c("_pages", "_posts", "_news", "_projects",
+                           "_books", "_data", "_includes", "_layouts",
+                           "_bibliography"))
+  files <- c(file.path(dir, c("_config.yml", "index.md", "index.html")),
+             unlist(lapply(dirs[dir.exists(dirs)], list.files,
+                           recursive = TRUE, full.names = TRUE)))
+  files <- files[file.exists(files)]
+  txt <- unlist(lapply(files, function(f) {
+    tryCatch(xfun::read_utf8(f), error = function(e) character())
+  }))
+  paste(txt[!grepl("^\\s*#", txt)], collapse = "\n")
+}
+
 # Hidden files/directories a template can ship that have no business in
 # a user's site (editor and CI configs, symlinked
 # tooling dirs Windows cannot even extract, and so on) -- everything except the
@@ -317,14 +378,20 @@ scrub_al_folio_demo <- function(dir) {
                                 lines)], config)
 
   # the demo config pulls external posts (Medium/Google feeds) into the
-  # blog index, which look like the user's own posts
-  lines <- xfun::read_utf8(config)
-  i <- grep("^external_sources:", lines)
-  if (length(i)) {
-    j <- i[1] + 1
-    while (j <= length(lines) && grepl("^\\s+\\S", lines[j])) j <- j + 1
-    xfun::write_utf8(lines[-(i[1]:(j - 1))], config)
+  # blog index, which look like the user's own posts; jekyll_get_json
+  # feeds the demo resume data to the (removed) cv page -- and while it
+  # stands, the media scrub must keep assets/json/resume.json alive
+  for (key in c("external_sources", "jekyll_get_json")) {
+    lines <- xfun::read_utf8(config)
+    i <- grep(sprintf("^%s:", key), lines)
+    if (length(i)) {
+      j <- i[1] + 1
+      while (j <= length(lines) && grepl("^\\s+\\S", lines[j])) j <- j + 1
+      xfun::write_utf8(lines[-(i[1]:(j - 1))], config)
+    }
   }
+
+  scrub_al_folio_media(dir)
 
   # the sample about page announces demo news, selected demo papers, and
   # ships Einstein as the placeholder profile picture -- a scrubbed site

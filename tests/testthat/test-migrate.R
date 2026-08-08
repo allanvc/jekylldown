@@ -635,3 +635,27 @@ test_that("dot-relative paths in plain posts are rooted", {
   expect_true(any(grepl("src='/img/logo.png'", md, fixed = TRUE)))
   expect_true(any(grepl("![y](/img/other.png)", md, fixed = TRUE)))
 })
+
+test_that("raw HTML img tags in bundles are rewritten; vimeo converts", {
+  hugo <- withr::local_tempdir()
+  fs::dir_create(file.path(hugo, "content/post/racing"))
+  xfun::write_utf8(c(
+    "---", "title: Racing", "date: '2021-07-29'", "---", "",
+    paste0('<img src="{{< blogdown/postref >}}',
+           'index_files/figure-html/plot-1.png" width="2100" />'),
+    "", "{{< vimeo 146022717 >}}"),
+    file.path(hugo, "content/post/racing/index.markdown"))
+  xfun::write_utf8("x",
+    file.path(hugo, "content/post/racing/cover.png"))
+  xfun::write_utf8("title = \"T\"\nbaseURL = \"https://x.org\"",
+                   file.path(hugo, "config.toml"))
+
+  site <- file.path(withr::local_tempdir(), "site")
+  suppressMessages(suppressWarnings(migrate_hugo(hugo, site)))
+  md <- readLines(file.path(site, "_posts", "2021-07-29-racing.md"))
+  expect_true(any(grepl(
+    'src="{{ site.baseurl }}/assets/img/posts/2021-07-29-racing/index_files/figure-html/plot-1.png',
+    md, fixed = TRUE)))
+  expect_true(any(grepl("player.vimeo.com/video/146022717", md,
+                        fixed = TRUE)))
+})

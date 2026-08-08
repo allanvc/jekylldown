@@ -1,3 +1,38 @@
+# jekylldown 0.3.0
+
+* Three migration fixes surfaced by inspecting every generated page of
+  the six-site battery, not just the build output: blogdown's
+  `{{< blogdown/postref >}}` prefix is stripped before the bundle path
+  rewrites (it was hiding raw `<img src="index_files/...">` tags from
+  them, leaving broken figures); raw HTML `img` tags with
+  bundle-relative paths are rewritten like Markdown links; and plain
+  non-page files under Hugo's `content/` tree (old blogdown sites keep
+  figures in `content/figs/`) are published to the site root exactly
+  like `static/`, honoring `only_referenced`.
+* `{{< vimeo >}}` shortcodes convert to an embedded player, like
+  `{{< youtube >}}` already did.
+* One broken post no longer kills the whole build: when a `_source`
+  file fails to knit (typical on migrated sites whose posts need
+  packages from the original author's setup), `build_site()` skips it
+  with a prominent warning listing the affected files, removes any
+  partial output, and builds everything else. Surfaced by a
+  six-site migration battery (this package's own test sites plus the
+  three real sites from the migration gallery) run against this
+  release.
+* Migrated and demo-free sites really are demo-free now. al-folio's
+  template ships tens of MB of sample media (photos, videos, audio,
+  notebooks, book covers, publication previews, resume data) that the
+  content scrub used to leave behind; the scrub now removes every demo
+  file that nothing left in the site references, checks references a
+  second time at the end of `migrate_hugo()` (template pages protect
+  some files until your content replaces them), prunes the
+  preview/cover folders file by file (the bibliography references them
+  by bare file name), and drops the placeholder portrait once the
+  profile picture is yours. The demo `jekyll_get_json` resume feed
+  goes from `_config.yml` along with its data file. Net effect on a
+  real migration: the site keeps only what came from the original site
+  plus what Jekyll and the theme need (~62 MB of demo media gone).
+
 # jekylldown 0.2.5
 
 * Footer credit: `add_footer_credit()` inserts "Built from R with

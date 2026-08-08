@@ -48,6 +48,7 @@ knit_all <- function(root, force = FALSE, quiet = FALSE) {
   sources <- list.files(file.path(root, "_source"), "[.]([Rr]|[qQ])md$",
                         full.names = TRUE)
   knitted <- character()
+  failed <- character()
   for (input in sources) {
     output <- file.path(root, "_posts",
                         paste0(xfun::sans_ext(basename(input)), ".md"))
@@ -55,10 +56,34 @@ knit_all <- function(root, force = FALSE, quiet = FALSE) {
       file.mtime(input) > file.mtime(output)
     if (!outdated) next
     cli::cli_alert_info("Knitting {.file {basename(input)}} ...")
-    knit_post(input, output, root)
-    knitted <- c(knitted, output)
+    ok <- tryCatch({
+      knit_post(input, output, root)
+      TRUE
+    }, error = function(e) {
+      cli::cli_warn("Knitting {.file {basename(input)}} failed:
+                     {conditionMessage(e)}")
+      FALSE
+    })
+    if (ok) {
+      knitted <- c(knitted, output)
+    } else {
+      # a failed knit can leave a partial output behind; drop it so the
+      # broken post is not built and the knit retries next time
+      unlink(output)
+      failed <- c(failed, input)
+    }
   }
-  if (!length(knitted) && !quiet) cli::cli_alert_success("All posts up to date.")
+  if (length(failed)) {
+    cli::cli_warn(c(
+      "{length(failed)} post{?s} could not be knitted and {?was/were}
+       skipped this build: {.file {basename(failed)}}.",
+      "i" = "Typical on migrated sites whose posts need packages from
+             the original author's setup -- install what is missing, fix
+             the post, or delete it from {.path _source/}."))
+  }
+  if (!length(knitted) && !length(failed) && !quiet) {
+    cli::cli_alert_success("All posts up to date.")
+  }
   invisible(knitted)
 }
 

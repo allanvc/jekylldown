@@ -41,12 +41,19 @@
 #'   files actually referenced by the migrated content are copied;
 #' * page-bundle resources (`content/post/my-post/plot.png`) are copied to
 #'   `assets/img/posts/<post>/` and relative image links are rewritten;
-#' * `{{< figure >}}` and `{{< youtube >}}` shortcodes are converted;
+#' * `{{< figure >}}`, `{{< youtube >}}` and `{{< vimeo >}}` shortcodes
+#'   are converted;
 #'   any other shortcode is left in place and reported for manual porting.
 #'
 #' The Hugo site is only read, never modified. Content not referenced by the
 #' menu, layouts and whatever else cannot be converted is listed in the
 #' final report.
+#'
+#' The migrated site carries no leftovers from the theme's demo: the
+#' scaffold is scrubbed before your content lands, and a final pass
+#' removes any demo media (sample photos, videos, audio, notebooks,
+#' preview images) that nothing in the migrated site references -- what
+#' remains is your content plus what Jekyll and the theme need.
 #'
 #' @param from Root of the existing Hugo site (must contain `content/`).
 #' @param to Directory to create the Jekyll site in (must not exist or be
@@ -106,6 +113,7 @@ migrate_hugo <- function(from, to, theme = c("minima", "al-folio",
                          publications = c("bib", "html"),
                          theme_color = NULL, rerender = TRUE) {
   publications <- match.arg(publications)
+  theme <- match.arg(theme)
   from <- normalizePath(from, mustWork = TRUE)
   if (!dir.exists(file.path(from, "content"))) {
     cli::cli_abort("{.path {from}} has no {.file content/} directory --
@@ -113,7 +121,7 @@ migrate_hugo <- function(from, to, theme = c("minima", "al-folio",
   }
 
   hugo <- hugo_structure(from)
-  new_site(to, theme = match.arg(theme), sample = FALSE, demo = FALSE)
+  new_site(to, theme = theme, sample = FALSE, demo = FALSE)
   root <- normalizePath(to)
 
   report <- list(posts = character(), drafts = character(),
@@ -271,6 +279,12 @@ migrate_hugo <- function(from, to, theme = c("minima", "al-folio",
   # --- static assets -------------------------------------------------------
   static <- copy_static(from, root, only_referenced)
   report$static_skipped <- static$skipped
+  if (theme == "al-folio") {
+    drop_placeholder_profile(root)
+    # second media pass: the template pages that protected some demo
+    # files at scrub time have been replaced by the user's content now
+    scrub_al_folio_media(root)
+  }
 
   # --- what stays manual ---------------------------------------------------
   sections <- basename(setdiff(
@@ -680,13 +694,33 @@ set_description <- function(lines, value) {
   lines
 }
 
-# Copy static/ into the site root. With only_referenced, keep only files
-# whose absolute URL (/path/file.ext) appears in the migrated content or
-# config; favicons are always kept.
+# Copy static files into the site root. Hugo serves two kinds: the
+# static/ tree, and plain non-page files under content/ (published at
+# their content-relative path -- old blogdown sites keep figures in
+# content/figs/ that way). Files inside leaf bundles are handled by the
+# per-post migration and skipped here. With only_referenced, keep only
+# files whose absolute URL (/path/file.ext) appears in the migrated
+# content or config; favicons are always kept.
 copy_static <- function(from, root, only_referenced) {
+  sources <- character()  # published relative path -> source file
   static <- file.path(from, "static")
-  if (!dir.exists(static)) return(list(copied = 0L, skipped = character()))
-  files <- list.files(static, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+  if (dir.exists(static)) {
+    f <- list.files(static, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+    sources[f] <- file.path(static, f)
+  }
+  content <- file.path(from, "content")
+  if (dir.exists(content)) {
+    f <- list.files(content, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+    f <- f[!grepl("[.](md|markdown|Rmd|Rmarkdown|html)$", f)]
+    in_bundle <- vapply(f, function(x) {
+      length(Sys.glob(file.path(content, dirname(x), "index.*"))) > 0
+    }, logical(1))
+    f <- f[!in_bundle]
+    new <- setdiff(f, names(sources))   # static/ wins on collisions
+    sources[new] <- file.path(content, new)
+  }
+  if (!length(sources)) return(list(copied = 0L, skipped = character()))
+  files <- names(sources)
   keep <- files
 
   if (only_referenced) {
@@ -707,7 +741,7 @@ copy_static <- function(from, root, only_referenced) {
   for (f in keep) {
     target <- file.path(root, f)
     fs::dir_create(dirname(target))
-    fs::file_copy(file.path(static, f), target, overwrite = TRUE)
+    fs::file_copy(sources[[f]], target, overwrite = TRUE)
   }
   list(copied = length(keep), skipped = setdiff(files, keep))
 }
@@ -742,6 +776,10 @@ migrate_post <- function(file, root, drafts = TRUE) {
   # bundle resources -> assets/img/posts/<base>/, and rewrite relative
   # image links to match
   body <- fm$body
+  # blogdown's {{< blogdown/postref >}} prefix resolves to the page's
+  # own URL; strip it before the path rewrites below, or every prefixed
+  # bundle path starts with "{{" and dodges them
+  body <- gsub("\\{\\{[<%]\\s*blogdown/postref\\s*[>%]\\}\\}", "", body)
   if (!bundle) {
     # in a plain post, `./x` can only sensibly mean the site root (Hugo
     # sites with relativeURLs=true got away with it); left alone it
@@ -763,6 +801,12 @@ migrate_post <- function(file, root, drafts = TRUE) {
       }
       body <- gsub("(!\\[[^]]*\\]\\()(?!(?:[a-z+]+:)?//|/|\\{\\{)([^)]+\\))",
                    sprintf("\\1{{ site.baseurl }}/assets/img/posts/%s/\\2",
+                           base),
+                   body, perl = TRUE)
+      # pre-rendered .markdown can carry raw HTML tags with relative
+      # bundle paths (<img src="index_files/...">) -- same rewrite
+      body <- gsub("(src\\s*=\\s*[\"'])(?!(?:[a-z+]+:)?//|/|\\{\\{)",
+                   sprintf("\\1{{ site.baseurl }}/assets/img/posts/%s/",
                            base),
                    body, perl = TRUE)
     }
@@ -925,6 +969,21 @@ fm_date <- function(x) {
 # rest. Returns list(body, remaining = character vector of shortcode
 # names, classes = figure classes seen -- their display size lives in the
 # Hugo theme CSS, which port_figure_classes() carries over).
+# The template's placeholder portrait: once the migration has pointed
+# profile.image at the user's own photo (or left the profile disabled),
+# the placeholder files are dead weight. Kept only while the config
+# actively uses them.
+drop_placeholder_profile <- function(root) {
+  config <- file.path(root, "_config.yml")
+  if (!file.exists(config)) return(invisible(NULL))
+  lines <- xfun::read_utf8(config)
+  if (!any(grepl("^\\s*image:\\s*prof_pic", lines))) {
+    unlink(file.path(root, "assets", "img",
+                     c("prof_pic.jpg", "prof_pic_color.png")))
+  }
+  invisible(NULL)
+}
+
 convert_shortcodes <- function(body) {
   # blogdown wraps bundle resources as {{< blogdown/postref >}}index_files/...
   # in its rendered .markdown; the prefix resolves to the page's own URL,
@@ -966,6 +1025,12 @@ convert_shortcodes <- function(body) {
   body <- gsub(yt, paste0(
     '<iframe src="https://www.youtube.com/embed/\\1" width="560" ',
     'height="315" frameborder="0" allowfullscreen></iframe>'), body)
+
+  # {{< vimeo ID >}} -> iframe, same treatment
+  vm <- '\\{\\{[<%]\\s*vimeo\\s+"?([0-9]+)"?\\s*[>%]\\}\\}'
+  body <- gsub(vm, paste0(
+    '<iframe src="https://player.vimeo.com/video/\\1" width="640" ',
+    'height="360" frameborder="0" allowfullscreen></iframe>'), body)
 
   left <- regmatches(body, gregexpr("\\{\\{[<%]\\s*/?([A-Za-z0-9_-]+)", body))
   left <- unique(gsub("\\{\\{[<%]\\s*/?", "", unlist(left)))

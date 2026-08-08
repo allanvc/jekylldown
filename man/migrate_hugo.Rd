@@ -106,13 +106,20 @@ plugin), Hugo-only keys are dropped;
 files actually referenced by the migrated content are copied;
 \item page-bundle resources (\code{content/post/my-post/plot.png}) are copied to
 \verb{assets/img/posts/<post>/} and relative image links are rewritten;
-\item \verb{\{\{< figure >\}\}} and \verb{\{\{< youtube >\}\}} shortcodes are converted;
+\item \verb{\{\{< figure >\}\}}, \verb{\{\{< youtube >\}\}} and \verb{\{\{< vimeo >\}\}} shortcodes
+are converted;
 any other shortcode is left in place and reported for manual porting.
 }
 
 The Hugo site is only read, never modified. Content not referenced by the
 menu, layouts and whatever else cannot be converted is listed in the
 final report.
+
+The migrated site carries no leftovers from the theme's demo: the
+scaffold is scrubbed before your content lands, and a final pass
+removes any demo media (sample photos, videos, audio, notebooks,
+preview images) that nothing in the migrated site references -- what
+remains is your content plus what Jekyll and the theme need.
 }
 \examples{
 \dontrun{

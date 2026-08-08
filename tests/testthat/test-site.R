@@ -481,3 +481,79 @@ test_that("rebuild_args goes incremental only for content-only edits", {
     rebuild_args(cmd, first = FALSE, files = "_config.yml"),
     "build")
 })
+
+test_that("the al-folio media scrub keeps only what is referenced", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(file.path(dir, c("_pages", "assets/img/book_covers",
+                                  "assets/video", "assets/pdf")))
+  for (f in c("assets/img/1.jpg", "assets/img/2.jpg",
+              "assets/img/rhino.png", "assets/img/prof_pic.jpg",
+              "assets/img/book_covers/a.jpg",
+              "assets/video/demo.mp4", "assets/pdf/example_pdf.pdf")) {
+    xfun::write_utf8("x", file.path(dir, f))
+  }
+  xfun::write_utf8(c("title: x", "# image: assets/img/2.jpg"),
+                   file.path(dir, "_config.yml"))
+  # a real reference protects; a commented one does not
+  xfun::write_utf8("![](/assets/img/1.jpg)",
+                   file.path(dir, "_pages", "about.md"))
+  # bibliography references previews by bare file name
+  fs::dir_create(file.path(dir, c("_bibliography",
+                                  "assets/img/publication_preview")))
+  xfun::write_utf8("x", file.path(dir, "assets/img/publication_preview",
+                                  "MINE.png"))
+  xfun::write_utf8("x", file.path(dir, "assets/img/publication_preview",
+                                  "einstein.gif"))
+  xfun::write_utf8("@article{me, preview={MINE.png}, title={t} }",
+                   file.path(dir, "_bibliography", "papers.bib"))
+
+  scrub_al_folio_media(dir)
+  expect_true(file.exists(file.path(dir, "assets/img/1.jpg")))
+  expect_false(file.exists(file.path(dir, "assets/img/2.jpg")))
+  expect_false(file.exists(file.path(dir, "assets/img/rhino.png")))
+  expect_false(dir.exists(file.path(dir, "assets/img/book_covers")))
+  # referenced preview stays, demo preview goes
+  expect_true(file.exists(
+    file.path(dir, "assets/img/publication_preview/MINE.png")))
+  expect_false(file.exists(
+    file.path(dir, "assets/img/publication_preview/einstein.gif")))
+  expect_false(dir.exists(file.path(dir, "assets/video")))
+  expect_false(file.exists(file.path(dir, "assets/pdf/example_pdf.pdf")))
+  # the placeholder portrait is not the media scrub's business
+  expect_true(file.exists(file.path(dir, "assets/img/prof_pic.jpg")))
+})
+
+test_that("the placeholder portrait goes once the profile is the user's", {
+  dir <- withr::local_tempdir()
+  fs::dir_create(file.path(dir, "assets", "img"))
+  xfun::write_utf8("x", file.path(dir, "assets/img/prof_pic.jpg"))
+
+  xfun::write_utf8(c("profile:", "  image: prof_pic.jpg"),
+                   file.path(dir, "_config.yml"))
+  drop_placeholder_profile(dir)
+  expect_true(file.exists(file.path(dir, "assets/img/prof_pic.jpg")))
+
+  xfun::write_utf8(c("profile:", "  image: avatar_user.jpg"),
+                   file.path(dir, "_config.yml"))
+  drop_placeholder_profile(dir)
+  expect_false(file.exists(file.path(dir, "assets/img/prof_pic.jpg")))
+})
+
+test_that("a post that fails to knit is skipped, not fatal", {
+  site <- withr::local_tempdir()
+  fs::dir_create(file.path(site, c("_source", "_posts")))
+  xfun::write_utf8("title: x", file.path(site, "_config.yml"))
+  xfun::write_utf8(c("---", "title: Good", "---", "", "Fine `r 1 + 1`."),
+                   file.path(site, "_source", "2026-01-01-good.Rmd"))
+  # error=FALSE makes knitr abort, like posts whose setup chunk fails
+  xfun::write_utf8(c("---", "title: Bad", "---", "",
+                     "```{r, error=FALSE}", "stop('missing package')",
+                     "```"),
+                   file.path(site, "_source", "2026-01-02-bad.Rmd"))
+
+  w <- testthat::capture_warnings(knitted <- knit_all(site))
+  expect_true(any(grepl("could not be knitted", w)))
+  expect_length(knitted, 1)
+  expect_true(file.exists(file.path(site, "_posts", "2026-01-01-good.md")))
+  expect_false(file.exists(file.path(site, "_posts", "2026-01-02-bad.md")))
+})
