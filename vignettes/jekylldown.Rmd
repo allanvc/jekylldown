@@ -15,24 +15,25 @@ jekylldown does for [Jekyll](https://jekyllrb.com) what
 [blogdown](https://pkgs.rstudio.com/blogdown/) does for Hugo: create,
 build, preview, customize, migrate and publish a Jekyll website
 entirely from R, writing posts in R Markdown or Quarto. (blogdown
-itself supports Jekyll only in a limited way -- the serve-and-reknit
-loop -- with site scaffolding, themes, toolchain and everything else
-designed for Hugo; jekylldown picks up where that support stops.)
+supports Jekyll only in a limited way: the serve-and-reknit loop. Its
+site scaffolding, themes and toolchain are designed for Hugo;
+jekylldown picks up where that support stops.)
 
 Three things make Jekyll attractive for R users:
 
-* the **theme ecosystem** -- most notably
+* **The theme ecosystem.** The main example is
   [al-folio](https://github.com/alshedivat/al-folio), the reference
-  theme for academic sites (publications from BibTeX, CV, teaching and
-  news pages as structured data), with no Hugo counterpart of
-  comparable adoption;
-* **publishing sources instead of build artifacts** -- GitHub Pages
-  runs Jekyll natively and the bundled deploy workflows build in CI,
-  so the repository holds sources only (no `public/` or `_site/` to
-  commit) and publishing is a `git push`;
-* **a plain-Markdown contract** -- posts knit to Markdown that Jekyll
-  consumes as-is, and Jekyll is driven strictly through its command
-  line, so there is no R-Ruby bridge or version coupling to break.
+  theme for academic sites: publications come from BibTeX, and the CV,
+  teaching and news pages are structured data. Hugo has no counterpart
+  of comparable adoption.
+* **You publish sources, not build artifacts.** GitHub Pages runs
+  Jekyll natively and the bundled deploy workflows build the site in
+  CI, so the repository holds sources only and publishing is a
+  `git push`. There is no `public/` or `_site/` folder to commit.
+* **A plain-Markdown contract.** Posts are knitted to Markdown that
+  Jekyll consumes directly, and Jekyll runs strictly through its
+  command line. There is no R-Ruby bridge and no version coupling to
+  break.
 
 ```{r}
 library(jekylldown)

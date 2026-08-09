@@ -13,39 +13,40 @@
 build, preview, customize, migrate and publish Jekyll websites entirely
 from R, writing posts in R Markdown or [Quarto](https://quarto.org).
 
-What that buys you, concretely:
+The main benefits:
 
-- **The Jekyll theme ecosystem.** First-class support for
-  [al-folio](https://github.com/alshedivat/al-folio) -- the reference
-  theme for academic sites, with publications generated from
-  BibTeX/DOIs, CV, teaching and news pages --
-  [Chirpy](https://github.com/cotes2020/jekyll-theme-chirpy), [Minimal
-  Mistakes](https://github.com/mmistakes/minimal-mistakes) and minima;
-  any other gem-based theme works with the same pipeline.
-- **Publish sources, not build artifacts.** GitHub Pages runs Jekyll
-  natively and both bundled deploy workflows build in CI, so the
-  repository holds sources only: no `public/` or `_site/` to commit, no
-  rendered HTML to keep in sync, publishing is a `git push`.
-- **Nothing between R and Jekyll to break.** Posts knit to plain
-  Markdown that Jekyll consumes as-is (front matter preserved, figures
-  and tables handled); Jekyll is driven strictly through its command
-  line -- no R-Ruby bridge, no version coupling.
-- **A complete toolchain from R, on every platform.** `install_ruby()`
-  and `install_git()` provision an isolated toolchain -- no admin
-  rights, nothing system-wide -- and the entire workflow runs on Linux
-  and Windows CI on every push (see the badge above).
-- **Migration from blogdown in one function call.** `migrate_hugo()`
-  converts posts, page bundles, shortcodes, menu pages, site identity,
-  social profiles and publications, and reports what needs manual
-  attention -- validated page by page against real blogdown sites,
-  including one with 1,884 posts.
-- **Customization as code.** Colors, fonts, semantic elements and
-  free-form CSS in idempotent, dark-mode-aware layers
-  (`set_theme_style()`, `set_theme_font()`, `set_element_style()`,
-  `add_css()`) instead of hand-edited theme files.
-- **A writing loop that stays out of the way.** `serve_site()` runs in a
-  background process with incremental rebuilds on save; the console
-  stays free.
+  - **The Jekyll theme ecosystem.** First-class support for
+    [al-folio](https://github.com/alshedivat/al-folio), the reference
+    theme for academic sites: publications are generated from BibTeX and
+    DOIs, and the CV, teaching and news pages are structured data.
+    [Chirpy](https://github.com/cotes2020/jekyll-theme-chirpy), [Minimal
+    Mistakes](https://github.com/mmistakes/minimal-mistakes) and minima
+    are also supported, and any other gem-based theme works with the
+    same pipeline.
+  - **You publish sources, not build artifacts.** GitHub Pages runs
+    Jekyll natively and the bundled deploy workflows build the site in
+    101. The repository holds sources only: there is no `public/` or
+         `_site/` folder to commit and no rendered HTML to keep in sync.
+         Publishing is a `git push`.
+  - **Nothing between R and Jekyll to break.** Posts are knitted to
+    plain Markdown, which Jekyll consumes directly; front matter,
+    figures and tables are handled. Jekyll runs strictly through its
+    command line, so there is no R-Ruby bridge and no version coupling.
+  - **A complete toolchain from R, on every platform.** `install_ruby()`
+    and `install_git()` set up an isolated toolchain, with no admin
+    rights and nothing installed system-wide. The entire workflow runs
+    on Linux and Windows CI on every push.
+  - **Migration from blogdown in one function call.** `migrate_hugo()`
+    converts posts, page bundles, shortcodes, menu pages, site identity,
+    social profiles and publications, and reports what needs manual
+    attention. It has been validated page by page against real blogdown
+    sites, including one with 1,884 posts.
+  - **Customization as code.** Colors, fonts, semantic elements and
+    free-form CSS are set through idempotent, dark-mode-aware functions
+    (`set_theme_style()`, `set_theme_font()`, `set_element_style()`,
+    `add_css()`) instead of edits to theme files.
+  - **A quiet writing loop.** `serve_site()` runs in a background
+    process and rebuilds incrementally on save. The console stays free.
 
 ## Installation
 
@@ -178,7 +179,7 @@ extra step: themes that ship their own `Gemfile` need `bundle_install()`
 once before the first build.
 
 | Theme            | Create                                            | One-time extra step                                                    |
-|------------------|---------------------------------------------------|------------------------------------------------------------------------|
+| ---------------- | ------------------------------------------------- | ---------------------------------------------------------------------- |
 | minima (default) | `new_site("my-site")`                             | none -- the theme gem is installed with the toolchain                  |
 | al-folio         | `new_site("my-site", theme = "al-folio")`         | `bundle_install("my-site")` -- needs git (on Windows, `install_git()`) |
 | Chirpy           | `new_site("my-site", theme = "chirpy")`           | `bundle_install("my-site")`                                            |
@@ -280,12 +281,14 @@ in its own convention. See the vignette:
 `_source/` **and** the generated `_posts/*.md`); what varies is who runs
 `jekyll build`.
 
-**GitHub Pages** (the natural home -- free, and Jekyll-native):
+**GitHub Pages** (free, and Jekyll-native):
 
 1.  Push the site to a repository -- `youruser.github.io` for a user
     site, any name for a project site.
 2.  Get a build workflow. al-folio and Chirpy already ship one; for
     minima, Minimal Mistakes and other themes, add the standard one:
+
+<!-- end list -->
 
 ``` r
 use_pages_workflow("mysite")   # writes .github/workflows/jekyll.yml
@@ -293,13 +296,12 @@ use_pages_workflow("mysite")   # writes .github/workflows/jekyll.yml
 
 3.  Point Pages at the right source (once, in the repository settings)
     -- **the two bundled workflows publish differently**:
-    - Chirpy's workflow and `use_pages_workflow()`'s use the official
-      Pages actions: set **Pages \> Source: GitHub Actions**.
-    - al-folio's workflow pushes the built site to a `gh-pages` branch:
-      set **Pages \> Source: Deploy from a branch \> gh-pages / (root)**
-      (with "GitHub Actions" selected the workflow runs green but the
-      site never updates).
-
+      - Chirpy's workflow and `use_pages_workflow()`'s use the official
+        Pages actions: set **Pages \> Source: GitHub Actions**.
+      - al-folio's workflow pushes the built site to a `gh-pages`
+        branch: set **Pages \> Source: Deploy from a branch \> gh-pages
+        / (root)** (with "GitHub Actions" selected the workflow runs
+        green but the site never updates).
     Every push then builds and publishes. Commit the `Gemfile.lock` from
     `bundle_install()` -- the workflows cache gems from it. One
     first-publication quirk: a force-push that replaces the branch
@@ -317,9 +319,9 @@ you want no remote build at all.
 command to `bundle exec jekyll build` with publish directory `_site`
 (both detect Jekyll and suggest exactly this).
 
-**GitLab Pages**: a minimal `.gitlab-ci.yml` that runs
-`bundle exec jekyll build -d public` in a Ruby image and publishes the
-`public` artifact.
+**GitLab Pages**: a minimal `.gitlab-ci.yml` that runs `bundle exec
+jekyll build -d public` in a Ruby image and publishes the `public`
+artifact.
 
 **Your own server / anything else**: `build_site()` and copy `_site/`
 over (`rsync -av _site/ server:/var/www/site/`). Static files, no
@@ -328,7 +330,7 @@ runtime.
 ## How it works
 
 | Where                            | What                                                                                                                |
-|----------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `_source/*.Rmd`, `*.qmd`         | posts in R Markdown/Quarto (the source; excluded from Jekyll)                                                       |
 | `_posts/*.md`                    | knitted output -- an artifact, never edit by hand (unless the post has no `_source/` twin: then it *is* the source) |
 | `_pages/`, `_tabs/`, or the root | pages, in the active theme's convention -- edit directly; front matter controls the menu                            |

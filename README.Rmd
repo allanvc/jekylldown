@@ -25,39 +25,40 @@ knitr::opts_chunk$set(
 build, preview, customize, migrate and publish Jekyll websites entirely
 from R, writing posts in R Markdown or [Quarto](https://quarto.org).
 
-What that buys you, concretely:
+The main benefits:
 
 * **The Jekyll theme ecosystem.** First-class support for
-  [al-folio](https://github.com/alshedivat/al-folio) -- the reference
-  theme for academic sites, with publications generated from
-  BibTeX/DOIs, CV, teaching and news pages --
+  [al-folio](https://github.com/alshedivat/al-folio), the reference
+  theme for academic sites: publications are generated from BibTeX and
+  DOIs, and the CV, teaching and news pages are structured data.
   [Chirpy](https://github.com/cotes2020/jekyll-theme-chirpy),
   [Minimal Mistakes](https://github.com/mmistakes/minimal-mistakes)
-  and minima; any other gem-based theme works with the same pipeline.
-* **Publish sources, not build artifacts.** GitHub Pages runs Jekyll
-  natively and both bundled deploy workflows build in CI, so the
-  repository holds sources only: no `public/` or `_site/` to commit,
-  no rendered HTML to keep in sync, publishing is a `git push`.
-* **Nothing between R and Jekyll to break.** Posts knit to plain
-  Markdown that Jekyll consumes as-is (front matter preserved, figures
-  and tables handled); Jekyll is driven strictly through its command
-  line -- no R-Ruby bridge, no version coupling.
+  and minima are also supported, and any other gem-based theme works
+  with the same pipeline.
+* **You publish sources, not build artifacts.** GitHub Pages runs
+  Jekyll natively and the bundled deploy workflows build the site in
+  CI. The repository holds sources only: there is no `public/` or
+  `_site/` folder to commit and no rendered HTML to keep in sync.
+  Publishing is a `git push`.
+* **Nothing between R and Jekyll to break.** Posts are knitted to
+  plain Markdown, which Jekyll consumes directly; front matter,
+  figures and tables are handled. Jekyll runs strictly through its
+  command line, so there is no R-Ruby bridge and no version coupling.
 * **A complete toolchain from R, on every platform.** `install_ruby()`
-  and `install_git()` provision an isolated toolchain -- no admin
-  rights, nothing system-wide -- and the entire workflow runs on Linux
-  and Windows CI on every push (see the badge above).
+  and `install_git()` set up an isolated toolchain, with no admin
+  rights and nothing installed system-wide. The entire workflow runs
+  on Linux and Windows CI on every push.
 * **Migration from blogdown in one function call.** `migrate_hugo()`
   converts posts, page bundles, shortcodes, menu pages, site identity,
   social profiles and publications, and reports what needs manual
-  attention -- validated page by page against real blogdown sites,
-  including one with 1,884 posts.
+  attention. It has been validated page by page against real blogdown
+  sites, including one with 1,884 posts.
 * **Customization as code.** Colors, fonts, semantic elements and
-  free-form CSS in idempotent, dark-mode-aware layers
+  free-form CSS are set through idempotent, dark-mode-aware functions
   (`set_theme_style()`, `set_theme_font()`, `set_element_style()`,
-  `add_css()`) instead of hand-edited theme files.
-* **A writing loop that stays out of the way.** `serve_site()` runs in
-  a background process with incremental rebuilds on save; the console
-  stays free.
+  `add_css()`) instead of edits to theme files.
+* **A quiet writing loop.** `serve_site()` runs in a background
+  process and rebuilds incrementally on save. The console stays free.
 
 ## Installation
 
@@ -289,7 +290,7 @@ convention. See the vignette:
 `_source/` **and** the generated `_posts/*.md`); what varies is who runs
 `jekyll build`.
 
-**GitHub Pages** (the natural home -- free, and Jekyll-native):
+**GitHub Pages** (free, and Jekyll-native):
 
 1. Push the site to a repository -- `youruser.github.io` for a user
    site, any name for a project site.
