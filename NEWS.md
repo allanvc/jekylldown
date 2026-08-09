@@ -1,3 +1,13 @@
+# jekylldown 0.3.2
+
+* README and getting-started vignette open with the case for the
+  package: the concrete benefits over a Hugo/blogdown setup (the
+  Jekyll theme ecosystem led by al-folio, publishing sources instead
+  of build artifacts, the plain-Markdown contract with no R-Ruby
+  bridge, the one-call toolchain on every platform, one-call migration
+  validated against real sites, customization as code, and the
+  background preview loop) -- stated as verifiable facts, up front.
+
 # jekylldown 0.3.1
 
 * Scaffolded and migrated sites exclude `*.Rproj` from the Jekyll

@@ -13,18 +13,26 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
 
 jekylldown does for [Jekyll](https://jekyllrb.com) what
 [blogdown](https://pkgs.rstudio.com/blogdown/) does for Hugo: create,
-build, preview and maintain a Jekyll website from R, writing posts in
-R Markdown or Quarto. (blogdown itself supports Jekyll only in a
-limited way -- the serve-and-reknit loop -- with site scaffolding,
-themes, toolchain and everything else designed for Hugo; jekylldown
-picks up where that support stops.) Two things make Jekyll attractive for R users:
+build, preview, customize, migrate and publish a Jekyll website
+entirely from R, writing posts in R Markdown or Quarto. (blogdown
+itself supports Jekyll only in a limited way -- the serve-and-reknit
+loop -- with site scaffolding, themes, toolchain and everything else
+designed for Hugo; jekylldown picks up where that support stops.)
+
+Three things make Jekyll attractive for R users:
 
 * the **theme ecosystem** -- most notably
-  [al-folio](https://github.com/alshedivat/al-folio), the de-facto
-  reference theme for academic sites (publications from BibTeX, CV,
-  teaching and news pages as structured data);
-* **GitHub Pages builds Jekyll natively**, so a site can be published
-  with a plain `git push` -- no local Ruby required for the deploy.
+  [al-folio](https://github.com/alshedivat/al-folio), the reference
+  theme for academic sites (publications from BibTeX, CV, teaching and
+  news pages as structured data), with no Hugo counterpart of
+  comparable adoption;
+* **publishing sources instead of build artifacts** -- GitHub Pages
+  runs Jekyll natively and the bundled deploy workflows build in CI,
+  so the repository holds sources only (no `public/` or `_site/` to
+  commit) and publishing is a `git push`;
+* **a plain-Markdown contract** -- posts knit to Markdown that Jekyll
+  consumes as-is, and Jekyll is driven strictly through its command
+  line, so there is no R-Ruby bridge or version coupling to break.
 
 ```{r}
 library(jekylldown)
