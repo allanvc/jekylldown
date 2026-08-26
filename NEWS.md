@@ -1,3 +1,13 @@
+# jekylldown 0.3.3
+
+* Pandoc-style attributes on links (`[x](u){target="_blank"}`) are now
+  rewritten as kramdown inline attribute lists during migration, as
+  image attributes already were. Before, the braces were printed as
+  literal text after the link in migrated posts.
+* The same rewrite runs on every knitted or pandoc-rendered post as a
+  safety net, outside code blocks, so hand-written posts that copy the
+  pandoc form render correctly too.
+
 # jekylldown 0.3.2
 
 * README and getting-started vignette open with the case for the

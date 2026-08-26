@@ -171,7 +171,8 @@ knit_post <- function(input, output, root = NULL, method = NULL) {
   )
   knitr::knit(input, output, envir = new.env(parent = globalenv()),
               quiet = TRUE, encoding = "UTF-8")
-  xfun::write_utf8(tag_tables(xfun::read_utf8(output)), output)
+  xfun::write_utf8(tag_tables(fix_link_attrs(xfun::read_utf8(output))),
+                   output)
   invisible(output)
 }
 
@@ -279,7 +280,8 @@ adapt_rendered_post <- function(input, output, root, base, out_md,
   body <- strip_title_block(body, meta)
 
   fs::dir_create(dirname(output))
-  xfun::write_utf8(c("---", fm, "---", "", tag_tables(body)), output)
+  xfun::write_utf8(c("---", fm, "---", "", tag_tables(fix_link_attrs(body))),
+                   output)
   invisible(output)
 }
 
@@ -332,9 +334,10 @@ jd_quarto <- function() {
 # {% highlight %} blocks are left alone, as are tables that already carry
 # an IAL. Harmless on minima (no `.table` class, and its own CSS already
 # styles bare tables).
-tag_tables <- function(lines) {
+# TRUE for lines inside fenced or highlight code blocks (fences included),
+# which post-processing must leave untouched.
+in_code_block <- function(lines) {
   n <- length(lines)
-  if (!n) return(lines)
   protected <- logical(n)
   in_code <- FALSE
   for (i in seq_len(n)) {
@@ -348,6 +351,23 @@ tag_tables <- function(lines) {
     protected[i] <- in_code
     if (grepl("^\\s*\\{%\\s*endhighlight", l)) in_code <- FALSE
   }
+  protected
+}
+
+# Safety net for hand-written posts that use pandoc-style link or image
+# attributes ([x](u){target="_blank"}): rewrite them as kramdown IALs
+# outside code blocks. Idempotent, so correct kramdown passes unchanged.
+fix_link_attrs <- function(lines) {
+  if (!length(lines)) return(lines)
+  keep <- !in_code_block(lines)
+  lines[keep] <- convert_pandoc_attrs(lines[keep])
+  lines
+}
+
+tag_tables <- function(lines) {
+  n <- length(lines)
+  if (!n) return(lines)
+  protected <- in_code_block(lines)
   # GitHub renders pipe tables without the leading pipe
   # (`Topic|Length` over `----|----`), but kramdown only recognizes rows
   # that START with `|` -- normalize such loose tables first

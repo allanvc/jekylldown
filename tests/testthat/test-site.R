@@ -336,6 +336,19 @@ test_that("Minimal Mistakes scaffold aliases the post layout to single", {
   expect_true("{{ content }}" %in% alias)
 })
 
+test_that("fix_link_attrs converts pandoc link attributes outside code", {
+  out <- jekylldown:::fix_link_attrs(c(
+    'See [here](u){target="_blank"}.',
+    "```",
+    '[x](u){target="_blank"}',
+    "```",
+    '![](i.png){width=50%}'))
+  expect_equal(out[1], 'See [here](u){: target="_blank"}.')
+  expect_equal(out[3], '[x](u){target="_blank"}')
+  expect_equal(out[5], '![](i.png){: width="50%"}')
+  expect_equal(jekylldown:::fix_link_attrs(out), out)
+})
+
 test_that("tag_tables normalizes tables without leading pipes", {
   out <- jekylldown:::tag_tables(c(
     "Topic|Length|",

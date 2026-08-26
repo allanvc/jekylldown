@@ -352,6 +352,16 @@ test_that("convert_pandoc_attrs rewrites image attributes as kramdown IALs", {
   expect_equal(out[3], "no attrs here ![](c.png)")
 })
 
+test_that("convert_pandoc_attrs handles link attributes and is idempotent", {
+  f <- jekylldown:::convert_pandoc_attrs
+  expect_equal(f('[a](u){target="_blank"}'), '[a](u){: target="_blank"}')
+  expect_equal(f('[a](u){target=_blank}'), '[a](u){: target="_blank"}')
+  expect_equal(f('[a](u){: target="_blank"}'), '[a](u){: target="_blank"}')
+  expect_equal(f('See [here](https://example.org){target="_blank"}.'),
+               'See [here](https://example.org){: target="_blank"}.')
+  expect_equal(f('![](x){: width="100%"}'), '![](x){: width="100%"}')
+})
+
 test_that("parse_toml_simple handles common front matter", {
   meta <- jekylldown:::parse_toml_simple(c(
     'title = "Quoted # title"',

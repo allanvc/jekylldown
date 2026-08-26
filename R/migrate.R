@@ -1049,13 +1049,14 @@ escape_liquid <- function(body) {
        perl = TRUE)
 }
 
-# Pandoc attaches image attributes as ![](x){width=100%}; kramdown needs an
-# inline attribute list with quoted values: ![](x){: width="100%"}. Without
-# the conversion the braces show up as literal text in the rendered post.
+# Pandoc attaches attributes to links and images as [x](u){target=_blank}
+# or ![](x){width=100%}; kramdown needs an inline attribute list with a
+# leading colon and quoted values: [x](u){: target="_blank"}. Without the
+# conversion the braces show up as literal text in the rendered post.
 convert_pandoc_attrs <- function(body) {
   # (?!:) skips braces that are already a kramdown IAL, e.g. from a
-  # converted figure shortcode
-  body <- gsub("(!\\[[^]]*\\]\\([^)]*\\))\\{\\s*(?!:)([^}]+?)\\s*\\}",
+  # converted figure shortcode, so the function is idempotent
+  body <- gsub("(!?\\[[^]]*\\]\\([^)]*\\))\\{\\s*(?!:)([^}]+?)\\s*\\}",
                "\\1{: \\2}", body, perl = TRUE)
   vapply(body, function(l) {
     r <- gregexpr("\\{:[^}]*\\}", l)
