@@ -46,6 +46,25 @@ test_that("the title patch applies to jekyll-feed's template", {
   # the rest of the template is intact
   expect_true(any(grepl("<entry", out, fixed = TRUE)))
   expect_equal(sum(grepl("<feed ", out, fixed = TRUE)), 1)
+  # the content line now renders the body with absolute src/href
+  expect_false(any(trimws(out) == jekylldown:::feed_content_anchor))
+  expect_equal(sum(grepl("<content type=\"html\"", out, fixed = TRUE)), 1)
+  expect_true(any(grepl("<![CDATA[{{ jd_content }}]]>", out, fixed = TRUE)))
+  expect_true(any(grepl("replace: 'src=\"/', jd_src", out, fixed = TRUE)))
+  expect_true(any(grepl("replace: 'href=\"/', jd_href", out, fixed = TRUE)))
+  expect_true(any(grepl("jd_host != empty", out, fixed = TRUE)))
+})
+
+test_that("a template without the content line is patched with a warning", {
+  tpl <- bundled_template()
+  tpl <- tpl[trimws(tpl) != jekylldown:::feed_content_anchor]
+  expect_warning(
+    out <- jekylldown:::patch_feed_template(tpl, "9.9.9", "gem"),
+    "content line")
+  # the title patch and the marker are still there
+  expect_true(any(grepl("site.title == 'blank'", out, fixed = TRUE)))
+  expect_equal(jekylldown:::feed_include_version(out), "9.9.9")
+  expect_false(any(grepl("jd_content", out, fixed = TRUE)))
 })
 
 test_that("a template without the anchor line is refused, loudly", {
@@ -153,8 +172,10 @@ test_that("the installed jekyll-feed gem still has the anchor line", {
   skip_if(!length(gem), "jekyll-feed gem not installed")
   for (f in gem) {
     version <- sub("^.*jekyll-feed-([0-9.]+)/.*$", "\\1", f)
-    out <- jekylldown:::patch_feed_template(xfun::read_utf8(f), version, "gem")
+    expect_no_warning(
+      out <- jekylldown:::patch_feed_template(xfun::read_utf8(f), version, "gem"))
     expect_equal(jekylldown:::feed_include_version(out), version)
+    expect_true(any(grepl("jd_content", out, fixed = TRUE)))
   }
 })
 

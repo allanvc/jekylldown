@@ -11,7 +11,7 @@ add_feed(category = NULL, dir = ".", force = FALSE)
 feed each at \verb{feed/<category>.xml}. \code{NULL} (the default) writes the
 main feed only.}
 
-\item{dir}{Site root, or any directory inside it -- like
+\item{dir}{Site root, or any directory inside it. Like
 \code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site.}
 
 \item{force}{Regenerate \verb{_includes/atom-feed.xml} even when it is
@@ -24,32 +24,48 @@ Invisibly, the paths of the feed pages written or confirmed
 }
 \description{
 Writes a site-level copy of jekyll-feed's template to
-\verb{_includes/atom-feed.xml}, patched so that al-folio's \code{title: blank}
-convention yields the author's full name as the feed title (the
-plugin alone prints the literal word "blank"), and the feed pages that
-render it: \code{feed.xml} for every post, plus \verb{feed/<category>.xml} for
-each \code{category} -- a full-text feed restricted to the posts whose
-\code{categories} front-matter entry contains that value (matched
-verbatim, so \code{"R"} and \code{"r"} are different categories). Aggregators
+\verb{_includes/atom-feed.xml} and the feed pages that render it:
+\code{feed.xml} with every post, plus \verb{feed/<category>.xml} for each
+\code{category}. A category feed carries the full text of the posts whose
+\code{categories} front-matter entry contains that value. The match is
+verbatim, so \code{"R"} and \code{"r"} are different categories. Aggregators
 such as R-Bloggers require exactly that kind of feed; see
 \code{\link[=use_r_bloggers]{use_r_bloggers()}} for the one-call setup.
 }
 \details{
-The template is taken from the jekyll-feed gem installed for the site
--- the version pinned in \code{Gemfile.lock}, which is what both the local
-build and the deploy workflow render with -- so it follows the
-plugin's development instead of freezing a copy inside jekylldown.
-When the gem is not installed yet, that version's tag is fetched from
-GitHub; offline, the copy shipped with the package is used (it is a
-complete template, not a degraded one: the feed pages need no plugin
-at all). The include records where it came from; re-running the
-function after a gem upgrade regenerates it from the new version, and
-\code{force = TRUE} regenerates it unconditionally. An \code{atom-feed.xml}
-you wrote yourself (no jekylldown marker) is never touched.
+The copy differs from the plugin's template in one place. al-folio
+sets \code{title: blank} in \verb{_config.yml} to mean "build the site title
+from the author's name". The theme's layouts follow that convention,
+but jekyll-feed does not, and prints the literal word "blank" as the
+feed title. The copy handles that case and leaves the title of every
+other theme as it is.
+
+The template is taken from the jekyll-feed gem installed for the
+site, at the version pinned in \code{Gemfile.lock}. That is the version
+the local build and the deploy workflow render with, so the include
+follows the plugin instead of freezing a copy inside jekylldown. When
+the gem is not installed yet, the template of that version is fetched
+from GitHub. Offline, the copy shipped with the package is used. It is
+a complete template, and the feed pages need no plugin at all. The
+include records where it came from. Running the function again after
+a gem upgrade regenerates it from the new version, and \code{force = TRUE}
+regenerates it unconditionally. An \code{atom-feed.xml} you wrote yourself,
+without the jekylldown marker, is never touched.
+
+Chirpy ships a main feed of its own at the same address, and Jekyll
+keeps the theme's version of \code{feed.xml} on that theme. The
+per-category feeds are jekylldown's on every theme.
+
+In the feeds, root-relative image and link paths in the post body
+(\verb{/assets/img/...}, which is what \code{\link[=knit_post]{knit_post()}} writes) are made
+absolute from \verb{url:} in \verb{_config.yml}. Feed readers are supposed to
+resolve such paths against the entry's \code{xml:base}, but aggregators
+such as R-Bloggers ask for absolute URLs, so the feed does not depend
+on the reader.
 
 \code{\link[=new_site]{new_site()}} and \code{\link[=migrate_hugo]{migrate_hugo()}} already call this on al-folio
-sites; call it yourself on existing ones, or on any theme where you
-want per-category feeds.
+sites. Call it yourself on an existing site, or on any theme where
+you want per-category feeds.
 }
 \examples{
 \dontrun{

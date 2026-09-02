@@ -9,7 +9,7 @@ use_r_bloggers(category = "R", dir = ".")
 \arguments{
 \item{category}{The category that marks R posts; \code{"R"} by default.}
 
-\item{dir}{Site root, or any directory inside it -- like
+\item{dir}{Site root, or any directory inside it. Like
 \code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site.}
 }
 \value{
@@ -21,14 +21,15 @@ Invisibly, a list with \code{feed} (the feed page's path), \code{url}
 R-Bloggers (\url{https://www.r-bloggers.com/}) aggregates R posts from
 a full-text feed that contains R content only, and asks for a link
 back to it on the blog. This function does the site side of that
-setup in one call: an R-only feed at \verb{feed/<category>.xml} through
-\code{\link[=add_feed]{add_feed()}} (which also fixes the feed title on al-folio sites),
-and, on al-folio, a line under the blog header linking to the
-category, to R-Bloggers and to the feed (a marker-delimited block in
-\verb{_pages/blog.md}, replaced on re-runs). On other themes the HTML
-snippet is printed for you to place. It then prints the feed URL to
-submit at \url{https://www.r-bloggers.com/add-your-blog/} once the
-site is published.
+setup in one call. It writes an R-only feed at \verb{feed/<category>.xml}
+through \code{\link[=add_feed]{add_feed()}}, which also fixes the feed title on al-folio
+sites. On al-folio it adds a line under the blog header with links to
+the category, to R-Bloggers and to the feed. That line is a
+marker-delimited block in \verb{_pages/blog.md}, replaced on re-runs. On
+other themes the HTML snippet is printed for you to place. Finally it
+prints the feed URL to submit at
+\url{https://www.r-bloggers.com/add-your-blog/} once the site is
+published.
 }
 \details{
 Only posts whose front matter carries the category enter the feed:

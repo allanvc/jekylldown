@@ -21,6 +21,9 @@
 
 feed_include <- "atom-feed.xml"
 feed_anchor <- "{% assign title = site.title | default: site.name %}"
+feed_content_anchor <- paste0(
+  '<content type="html" xml:base="{{ post.url | absolute_url | xml_escape }}">',
+  "<![CDATA[{{ post.content | strip }}]]></content>")
 feed_marker <- "jekylldown: rendered from jekyll-feed"
 feed_bundled_version <- "0.17.0"
 
@@ -30,36 +33,52 @@ rb_close <- "<!-- <<< jekylldown r-bloggers -->"
 #' Atom feeds with a correct title, optionally per category
 #'
 #' Writes a site-level copy of jekyll-feed's template to
-#' `_includes/atom-feed.xml`, patched so that al-folio's `title: blank`
-#' convention yields the author's full name as the feed title (the
-#' plugin alone prints the literal word "blank"), and the feed pages that
-#' render it: `feed.xml` for every post, plus `feed/<category>.xml` for
-#' each `category` -- a full-text feed restricted to the posts whose
-#' `categories` front-matter entry contains that value (matched
-#' verbatim, so `"R"` and `"r"` are different categories). Aggregators
+#' `_includes/atom-feed.xml` and the feed pages that render it:
+#' `feed.xml` with every post, plus `feed/<category>.xml` for each
+#' `category`. A category feed carries the full text of the posts whose
+#' `categories` front-matter entry contains that value. The match is
+#' verbatim, so `"R"` and `"r"` are different categories. Aggregators
 #' such as R-Bloggers require exactly that kind of feed; see
 #' [use_r_bloggers()] for the one-call setup.
 #'
-#' The template is taken from the jekyll-feed gem installed for the site
-#' -- the version pinned in `Gemfile.lock`, which is what both the local
-#' build and the deploy workflow render with -- so it follows the
-#' plugin's development instead of freezing a copy inside jekylldown.
-#' When the gem is not installed yet, that version's tag is fetched from
-#' GitHub; offline, the copy shipped with the package is used (it is a
-#' complete template, not a degraded one: the feed pages need no plugin
-#' at all). The include records where it came from; re-running the
-#' function after a gem upgrade regenerates it from the new version, and
-#' `force = TRUE` regenerates it unconditionally. An `atom-feed.xml`
-#' you wrote yourself (no jekylldown marker) is never touched.
+#' The copy differs from the plugin's template in one place. al-folio
+#' sets `title: blank` in `_config.yml` to mean "build the site title
+#' from the author's name". The theme's layouts follow that convention,
+#' but jekyll-feed does not, and prints the literal word "blank" as the
+#' feed title. The copy handles that case and leaves the title of every
+#' other theme as it is.
+#'
+#' The template is taken from the jekyll-feed gem installed for the
+#' site, at the version pinned in `Gemfile.lock`. That is the version
+#' the local build and the deploy workflow render with, so the include
+#' follows the plugin instead of freezing a copy inside jekylldown. When
+#' the gem is not installed yet, the template of that version is fetched
+#' from GitHub. Offline, the copy shipped with the package is used. It is
+#' a complete template, and the feed pages need no plugin at all. The
+#' include records where it came from. Running the function again after
+#' a gem upgrade regenerates it from the new version, and `force = TRUE`
+#' regenerates it unconditionally. An `atom-feed.xml` you wrote yourself,
+#' without the jekylldown marker, is never touched.
+#'
+#' Chirpy ships a main feed of its own at the same address, and Jekyll
+#' keeps the theme's version of `feed.xml` on that theme. The
+#' per-category feeds are jekylldown's on every theme.
+#'
+#' In the feeds, root-relative image and link paths in the post body
+#' (`/assets/img/...`, which is what [knit_post()] writes) are made
+#' absolute from `url:` in `_config.yml`. Feed readers are supposed to
+#' resolve such paths against the entry's `xml:base`, but aggregators
+#' such as R-Bloggers ask for absolute URLs, so the feed does not depend
+#' on the reader.
 #'
 #' [new_site()] and [migrate_hugo()] already call this on al-folio
-#' sites; call it yourself on existing ones, or on any theme where you
-#' want per-category feeds.
+#' sites. Call it yourself on an existing site, or on any theme where
+#' you want per-category feeds.
 #'
 #' @param category Optional character vector of post categories, one
 #'   feed each at `feed/<category>.xml`. `NULL` (the default) writes the
 #'   main feed only.
-#' @param dir Site root, or any directory inside it -- like
+#' @param dir Site root, or any directory inside it. Like
 #'   [build_site()], the function climbs to the enclosing site.
 #' @param force Regenerate `_includes/atom-feed.xml` even when it is
 #'   current.
@@ -89,14 +108,15 @@ add_feed <- function(category = NULL, dir = ".", force = FALSE) {
 #' R-Bloggers (\url{https://www.r-bloggers.com/}) aggregates R posts from
 #' a full-text feed that contains R content only, and asks for a link
 #' back to it on the blog. This function does the site side of that
-#' setup in one call: an R-only feed at `feed/<category>.xml` through
-#' [add_feed()] (which also fixes the feed title on al-folio sites),
-#' and, on al-folio, a line under the blog header linking to the
-#' category, to R-Bloggers and to the feed (a marker-delimited block in
-#' `_pages/blog.md`, replaced on re-runs). On other themes the HTML
-#' snippet is printed for you to place. It then prints the feed URL to
-#' submit at \url{https://www.r-bloggers.com/add-your-blog/} once the
-#' site is published.
+#' setup in one call. It writes an R-only feed at `feed/<category>.xml`
+#' through [add_feed()], which also fixes the feed title on al-folio
+#' sites. On al-folio it adds a line under the blog header with links to
+#' the category, to R-Bloggers and to the feed. That line is a
+#' marker-delimited block in `_pages/blog.md`, replaced on re-runs. On
+#' other themes the HTML snippet is printed for you to place. Finally it
+#' prints the feed URL to submit at
+#' \url{https://www.r-bloggers.com/add-your-blog/} once the site is
+#' published.
 #'
 #' Only posts whose front matter carries the category enter the feed:
 #' `new_post("...", categories = "R")`, or `categories: R` by hand.
@@ -144,7 +164,7 @@ ensure_feed_include <- function(root, force = FALSE) {
     if (is.na(have)) {
       cli::cli_alert_info(
         "{.file _includes/{feed_include}} is not managed by jekylldown
-         (no marker) -- left as is.")
+         (no marker); left as is.")
       return(inc)
     }
     if (!force) {
@@ -283,6 +303,31 @@ fetch_feed_template <- function(version) {
   lines
 }
 
+# Replacement for the plugin's <content> line: the post body with
+# root-relative `src="/..."` and `href="/..."` rewritten to absolute
+# URLs when the site has a `url:` (a trailing slash there is tolerated:
+# split/join drops it). Core Liquid only.
+feed_content_block <- c(
+  "{% comment %}",
+  "  jekylldown: root-relative src/href in the post body become absolute",
+  "  (from `url:` in _config.yml), as aggregators such as R-Bloggers ask.",
+  "{% endcomment %}",
+  "{% assign jd_host = site.url | default: \"\" | split: \"/\" | join: \"/\" %}",
+  "{% capture jd_src %}src=\"{{ jd_host }}/{% endcapture %}",
+  "{% capture jd_href %}href=\"{{ jd_host }}/{% endcapture %}",
+  "{% assign jd_content = post.content | strip %}",
+  "{% if jd_host != empty %}",
+  paste0("  {% assign jd_content = jd_content",
+         " | replace: 'src=\"//', 'src=\"jd:proto//'",
+         " | replace: 'href=\"//', 'href=\"jd:proto//'",
+         " | replace: 'src=\"/', jd_src",
+         " | replace: 'href=\"/', jd_href",
+         " | replace: 'src=\"jd:proto//', 'src=\"//'",
+         " | replace: 'href=\"jd:proto//', 'href=\"//' %}"),
+  "{% endif %}",
+  paste0("<content type=\"html\" xml:base=\"{{ post.url | absolute_url | xml_escape }}\">",
+         "<![CDATA[{{ jd_content }}]]></content>"))
+
 # Apply the title patch and stamp the provenance marker. The anchor is
 # the plugin's own title assignment; if upstream moves it, this is where
 # the package should fail, loudly, instead of writing a broken feed.
@@ -313,6 +358,24 @@ patch_feed_template <- function(lines, version, source) {
     "{% endif %}"))
   lines <- append(lines[-i], block, after = i - 1)
 
+  # Root-relative src/href in the post body become absolute, from `url:`
+  # in _config.yml. Readers should resolve them against xml:base;
+  # aggregators such as R-Bloggers ask for absolute URLs instead, so the
+  # feed does not depend on the reader. Protocol-relative `//host/...`
+  # paths are protected from the rewrite.
+  j <- which(trimws(lines) == feed_content_anchor)
+  if (length(j) == 1) {
+    indent <- sub("^(\\s*).*$", "\\1", lines[j])
+    lines <- append(lines[-j], paste0(indent, feed_content_block), after = j - 1)
+  } else {
+    cli::cli_warn(c(
+      "The jekyll-feed template ({version}, {source}) does not have the
+       content line jekylldown patches; image and link paths in the feed
+       stay relative.",
+      "i" = "Please report this at
+             {.url https://github.com/allanvc/jekylldown/issues}."))
+  }
+
   # the marker goes right after the XML declaration, never before it:
   # anything ahead of <?xml ?> makes the document ill-formed
   marker <- sprintf(
@@ -336,7 +399,7 @@ feed_page <- function(root, category = NULL) {
     if (!any(grepl(feed_include, xfun::read_utf8(path), fixed = TRUE))) {
       cli::cli_alert_info(
         "{.file {fs::path_rel(path, root)}} exists and is not rendered from
-         {.file _includes/{feed_include}} -- left as is.")
+         {.file _includes/{feed_include}}; left as is.")
     }
     return(path)
   }

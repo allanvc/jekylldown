@@ -3,16 +3,19 @@
 * New `add_feed()`: renders the site's Atom feeds from a site-level copy
   of jekyll-feed's template (`_includes/atom-feed.xml`), patched so that
   al-folio's `title: blank` convention yields the author's full name as
-  the feed title -- the plugin alone printed the literal word "blank".
+  the feed title. The plugin alone printed the literal word "blank".
   Optional per-category feeds (`feed/<category>.xml`, full text, only
   the posts carrying that category) on any theme. The template is taken
   from the jekyll-feed gem installed for the site (the version pinned in
   `Gemfile.lock`), falling back to that version's tag on GitHub and then
-  to a copy shipped with the package, and the include records its
-  provenance so a later gem upgrade regenerates it. The patch targets one
-  anchor line and aborts with a clear message if upstream moves it.
+  to a copy shipped with the package. The include records its provenance
+  so a later gem upgrade regenerates it. In the feeds, root-relative
+  image and link paths in the post body are made absolute from `url:`
+  in `_config.yml`, as aggregators such as R-Bloggers ask. The title
+  patch targets one anchor line and aborts with a clear message if
+  upstream moves it.
 * New `use_r_bloggers()`: the site side of an R-Bloggers submission in
-  one call -- an R-only feed via `add_feed(category = "R")`, the link
+  one call: an R-only feed via `add_feed(category = "R")`, the link
   back to R-Bloggers under the blog header on al-folio (a snippet to
   place on other themes), and the feed URL to submit.
 * `new_site(theme = "al-folio")` and, through it, `migrate_hugo()` call
