@@ -1,7 +1,7 @@
 Package: jekylldown
 Title: Create, Build and Serve 'Jekyll' Websites from 'R Markdown' and
     'Quarto'
-Version: 0.3.3
+Version: 0.3.4
 Authors@R:
     person("Allan", "Quadros", email = "allanvcq@gmail.com",
            role = c("aut", "cre"))
@@ -17,7 +17,6 @@ Description: Do for 'Jekyll' what 'blogdown' does for 'Hugo': create sites
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
 Imports:
     cli,
     fs,
@@ -37,3 +36,4 @@ Config/testthat/edition: 3
 SystemRequirements: Ruby (>= 3.0), jekyll, bundler
 URL: https://github.com/allanvc/jekylldown
 BugReports: https://github.com/allanvc/jekylldown/issues
+Config/roxygen2/version: 8.1.0

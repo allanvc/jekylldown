@@ -240,6 +240,38 @@ add_mathjax()
 add_footer_credit()     # remove_footer_credit() undoes it
 ```
 
+## Feeds, and R-Bloggers
+
+Jekyll sites get their Atom feed from the jekyll-feed plugin, which
+reads the site title from `title:` in `_config.yml`. al-folio sets
+`title: blank` there, a convention its own layouts translate into your
+first, middle and last name -- but the plugin does not, so the feed of
+a stock al-folio site is titled, literally, "blank". `add_feed()`
+renders the feeds from a site-level copy of the plugin's template with
+that one case handled (`new_site()` and `migrate_hugo()` call it on
+al-folio sites already). The copy is taken from the jekyll-feed gem
+installed for the site, the version pinned in `Gemfile.lock`, so it
+follows the plugin instead of freezing a copy in the package; the
+include records the version it came from, and re-running `add_feed()`
+after a gem upgrade regenerates it.
+
+The same call makes per-category feeds, on any theme: `feed/R.xml`
+with only the posts whose `categories` include `R`, full text. That is
+exactly what [R-Bloggers](https://www.r-bloggers.com/) asks for, so the
+whole setup is one call:
+
+```{r}
+use_r_bloggers()          # category = "R" by default
+```
+
+It writes the R-only feed, adds the link back to R-Bloggers under the
+blog header (al-folio; other themes get the snippet printed), and
+prints the feed URL to submit at
+<https://www.r-bloggers.com/add-your-blog/> once the site is published.
+Only posts carrying the category enter the feed --
+`new_post("...", categories = "R")` -- which keeps everything else you
+write out of the aggregator, as its rules require.
+
 `set_theme_color("red")` remains as a shorthand for setting the accent,
 and `set_theme_color(NULL)` removes the override again. For a full
 reset, delete the site-local stylesheet (`assets/css/main.scss`;
