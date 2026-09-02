@@ -253,6 +253,15 @@ add_css(".profile img { border-radius: 50%; }", id = "avatar")
 # footer credit ("Built from R with jekylldown X.Y.Z."), added by
 # new_site() and version-refreshed by build_site()
 add_footer_credit()     # remove_footer_credit() undoes it
+
+# Atom feeds rendered from a site-level copy of jekyll-feed's template:
+# on al-folio the feed title becomes your name instead of the literal
+# "blank" (new_site() does this already); per-category feeds on any theme
+add_feed(category = "R")   # -> /feed/R.xml, the R posts only, full text
+
+# the R-Bloggers setup in one call: the R-only feed, the link back to
+# R-Bloggers on the blog page, and the feed URL to submit
+use_r_bloggers()
 ```
 
 To undo the accent, call `set_theme_color(NULL)`; deleting the

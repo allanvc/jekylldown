@@ -57,6 +57,11 @@ tooling, keeping the GitHub Pages deploy workflow;
 (\url{https://github.com/mmistakes/minimal-mistakes}), generated
 locally as a gem-based site (see \code{\link[=set_theme_skin]{set_theme_skin()}} for its skins).
 }
+
+On al-folio the feed is rendered from a site-level copy of
+jekyll-feed's template (see \code{\link[=add_feed]{add_feed()}}), so that the theme's
+\code{title: blank} convention yields the author's name as the feed
+title instead of the literal word "blank".
 }
 \examples{
 \dontrun{

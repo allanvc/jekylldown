@@ -34,6 +34,10 @@
 #'   [migrate_hugo()] always starts from a scrubbed site. The other
 #'   themes start empty regardless.
 #' @return The normalized site path, invisibly.
+#' @details On al-folio the feed is rendered from a site-level copy of
+#'   jekyll-feed's template (see [add_feed()]), so that the theme's
+#'   `title: blank` convention yields the author's name as the feed
+#'   title instead of the literal word "blank".
 #' @examples
 #' \dontrun{
 #' # a minimal blog with the locally generated minima theme (no network)
@@ -76,6 +80,13 @@ new_site <- function(dir, theme = c("minima", "al-folio", "chirpy",
   # later) -- the credit can always be added afterwards by hand
   suppressMessages(tryCatch(add_footer_credit(root),
                             error = function(e) invisible()))
+  # al-folio's `title: blank` convention makes jekyll-feed print "blank"
+  # as the feed title; render the feed from a patched site-level copy of
+  # the plugin's template (see add_feed())
+  if (theme == "al-folio") {
+    suppressMessages(tryCatch(add_feed(dir = root),
+                              error = function(e) invisible()))
+  }
   write_build_script(root)
   if (sample) write_sample_post(root)
 
