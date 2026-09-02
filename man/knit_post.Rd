@@ -27,7 +27,7 @@ and cross-references. \code{NULL} (the default) takes the post's
 \description{
 Knits a single \code{.Rmd} with the conventions inherited from Yihui Xie's
 knitr-jekyll: front matter preserved, output fenced for kramdown/rouge
-via \code{\link[knitr:output_hooks]{knitr::render_jekyll()}}, figures written to
+via \code{\link[knitr:render_jekyll]{knitr::render_jekyll()}}, figures written to
 \verb{assets/img/posts/<post-name>/} and referenced through
 \code{{{ site.baseurl }}} so they resolve wherever the site is mounted.
 }

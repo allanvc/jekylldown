@@ -14,7 +14,7 @@ Default \code{TRUE} in interactive sessions.}
 
 \item{port}{Port to serve on; a random free port by default.}
 
-\item{...}{Passed on to \code{\link[servr:httd]{servr::httw()}} (e.g. \code{daemon}, \code{interval})
+\item{...}{Passed on to \code{\link[servr:httw]{servr::httw()}} (e.g. \code{daemon}, \code{interval})
 when \code{background = FALSE}.}
 }
 \value{
