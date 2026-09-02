@@ -61,7 +61,9 @@ test_that("add_feed writes the include from the installed gem and the pages", {
   paths <- suppressMessages(add_feed("R", dir = site))
 
   inc <- file.path(site, "_includes", "atom-feed.xml")
-  expect_equal(attr(paths, "include"), inc)
+  # site_root() normalises the site path; on Windows the tempdir may come
+  # back in 8.3 short form, so compare normalised paths on both sides
+  expect_equal(normalizePath(attr(paths, "include")), normalizePath(inc))
   expect_equal(normalizePath(paths),
                normalizePath(file.path(site, c("feed.xml", "feed/R.xml"))))
   lines <- readLines(inc)
