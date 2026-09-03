@@ -25,8 +25,9 @@ setup in one call. It writes an R-only feed at \verb{feed/<category>.xml}
 through \code{\link[=add_feed]{add_feed()}}, which also fixes the feed title on al-folio
 sites. On al-folio it adds a line under the blog header with links to
 the category, to R-Bloggers and to the feed. That line is a
-marker-delimited block in \verb{_pages/blog.md}, replaced on re-runs. On
-other themes the HTML snippet is printed for you to place. Finally it
+marker-delimited block in \verb{_pages/blog.md}, replaced on re-runs; a
+link to R-Bloggers you wrote there yourself is left alone. On other
+themes the HTML snippet is printed for you to place. Finally it
 prints the feed URL to submit at
 \url{https://www.r-bloggers.com/add-your-blog/} once the site is
 published.

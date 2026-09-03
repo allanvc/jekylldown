@@ -112,8 +112,9 @@ add_feed <- function(category = NULL, dir = ".", force = FALSE) {
 #' through [add_feed()], which also fixes the feed title on al-folio
 #' sites. On al-folio it adds a line under the blog header with links to
 #' the category, to R-Bloggers and to the feed. That line is a
-#' marker-delimited block in `_pages/blog.md`, replaced on re-runs. On
-#' other themes the HTML snippet is printed for you to place. Finally it
+#' marker-delimited block in `_pages/blog.md`, replaced on re-runs; a
+#' link to R-Bloggers you wrote there yourself is left alone. On other
+#' themes the HTML snippet is printed for you to place. Finally it
 #' prints the feed URL to submit at
 #' \url{https://www.r-bloggers.com/add-your-blog/} once the site is
 #' published.
@@ -465,6 +466,14 @@ rb_add_link <- function(root, category, feed_rel) {
   lines <- xfun::read_utf8(page)
   b <- which(lines == rb_begin)
   e <- which(lines == rb_close)
+  # a link written by hand (outside our markers) is the user's own:
+  # leave the page alone instead of adding a second one
+  if (!(length(b) && length(e)) &&
+      any(grepl("r-bloggers.com", lines, fixed = TRUE))) {
+    cli::cli_alert_info(
+      "{.file _pages/blog.md} already links to R-Bloggers; left as is.")
+    return(page)
+  }
   if (length(b) && length(e)) {
     lines <- append(lines[-(b[1]:e[1])], block, after = b[1] - 1)
   } else {

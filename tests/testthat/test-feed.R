@@ -216,6 +216,26 @@ test_that("use_r_bloggers adds the feed and the link on al-folio", {
   expect_length(which(readLines(blog) == jekylldown:::rb_begin), 1)
 })
 
+test_that("a hand-written R-Bloggers link on the blog page is left alone", {
+  site <- local_site()
+  fs::dir_create(file.path(site, "_pages"))
+  blog <- file.path(site, "_pages", "blog.md")
+  xfun::write_utf8(c(
+    "---", "layout: default", "permalink: /blog/", "---",
+    "",
+    '<p class="text-center r-bloggers-link">',
+    '  Posts in the R category are syndicated on',
+    '  <a href="https://www.r-bloggers.com/">R-Bloggers</a>',
+    "</p>"
+  ), blog)
+  before <- readLines(blog)
+
+  expect_message(res <- use_r_bloggers(dir = site), "already links to R-Bloggers")
+  expect_identical(readLines(blog), before)
+  expect_equal(res$link, blog)
+  expect_equal(sum(grepl("r-bloggers.com", readLines(blog), fixed = TRUE)), 1)
+})
+
 test_that("use_r_bloggers prints the snippet on other themes", {
   site <- local_site(config = c("title: My blog", "theme: minima",
                                 "url: https://b.example.org",

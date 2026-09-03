@@ -21,6 +21,9 @@
 * `new_site(theme = "al-folio")` and, through it, `migrate_hugo()` call
   `add_feed()` so fresh al-folio sites never publish a feed titled
   "blank".
+* `use_r_bloggers()` leaves `_pages/blog.md` alone when it already links
+  to R-Bloggers outside the jekylldown markers, instead of adding a
+  second line.
 
 # jekylldown 0.3.3
 
