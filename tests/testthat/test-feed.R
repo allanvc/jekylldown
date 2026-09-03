@@ -232,7 +232,7 @@ test_that("a hand-written R-Bloggers link on the blog page is left alone", {
 
   expect_message(res <- use_r_bloggers(dir = site), "already links to R-Bloggers")
   expect_identical(readLines(blog), before)
-  expect_equal(res$link, blog)
+  expect_equal(normalizePath(res$link), normalizePath(blog))
   expect_equal(sum(grepl("r-bloggers.com", readLines(blog), fixed = TRUE)), 1)
 })
 
