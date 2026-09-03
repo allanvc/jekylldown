@@ -156,7 +156,7 @@ al-folio's rich `_config.yml` deserves a pass by hand:
 
 ### Known al-folio gotchas
 
-Verified with al-folio as of August 2026:
+Verified with al-folio as of September 2026:
 
 * **Jupyter notebooks.** al-folio refuses to build when the
   `jekyll-jupyter-notebook` plugin is enabled but `jupyter-nbconvert` is
@@ -168,6 +168,14 @@ Verified with al-folio as of August 2026:
   build succeeds without one -- assets are just not minified -- so this
   only matters for production polish. GitHub Actions provides Node, so
   remote builds are unaffected.
+* **Dependabot alert on `css_parser`.** Once the site is on GitHub,
+  Dependabot flags `css_parser` 1.22.0 in `Gemfile.lock`
+  (CVE-2026-53727). The alert comes from the theme, not from
+  jekylldown: al-folio's `jekyll-3rd-party-libraries` plugin requires a
+  version below 2.0, so bundler cannot move to the fixed 3.0.0 until the
+  plugin allows it. The gem runs only during the build, on your own
+  CSS, so the practical risk is low. You can dismiss the alert; a later
+  `bundle_install()` picks up the fix once al-folio ships it.
 
 ## Step 4 -- preview locally (optional)
 
