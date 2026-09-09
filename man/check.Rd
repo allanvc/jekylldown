@@ -19,7 +19,5 @@ bundler and jekyll executables (looking first in the package's isolated
 \code{GEM_HOME}, then on the \code{PATH}), plus the current site, if any.
 }
 \examples{
-\dontrun{
 jekylldown::check()
-}
 }

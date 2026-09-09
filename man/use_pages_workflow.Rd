@@ -38,7 +38,7 @@ The workflow caches gems, which requires a committed \code{Gemfile.lock}:
 run \code{\link[=bundle_install]{bundle_install()}} once and commit the lockfile it produces.
 }
 \examples{
-\dontrun{
-use_pages_workflow("my-site")
-}
+site <- new_site(tempfile("my-blog"))
+use_pages_workflow(site)
+unlink(site, recursive = TRUE)
 }

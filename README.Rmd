@@ -109,7 +109,7 @@ git is absent. The one step that needs git -- al-folio's
 `bundle_install()`, whose `Gemfile` pulls a gem from a git repository --
 is covered by `install_git()`, which drops a portable MinGit into the
 same isolated toolchain (for publishing with `git push` you will still
-want a regular [git installation](https://git-scm.com/downloads)).
+want a regular [git installation](https://git-scm.com/downloads/)).
 The whole workflow -- `install_ruby()`, `new_site()`, `build_site()`,
 `serve_site()` -- runs on a Windows GitHub Actions runner on every push.
 
@@ -361,8 +361,8 @@ pages, identity and data files, and why `_config.yml` edits apply live
 under `serve_site()`.
 
 Prior art: this package packages up the workflow of Yihui Xie's
-[`servr::jekyll()`](https://rdrr.io/cran/servr/man/jekyll.html) and
-[knitr-jekyll](https://github.com/yihui/knitr-jekyll), with the API
+[`servr::jekyll()`](https://cran.r-project.org/package=servr) and
+[knitr-jekyll](https://github.com/yihui/blogdown-jekyll), with the API
 mirroring blogdown on purpose. blogdown itself supports Jekyll only in
 a limited way -- essentially the serve-and-reknit loop, with everything
 else (site scaffolding, themes, toolchain, migration) designed for

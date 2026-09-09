@@ -26,9 +26,9 @@
 #' @return Invisibly, the path of the workflow file (or of the theme's
 #'   own workflow when one already exists).
 #' @examples
-#' \dontrun{
-#' use_pages_workflow("my-site")
-#' }
+#' site <- new_site(tempfile("my-blog"))
+#' use_pages_workflow(site)
+#' unlink(site, recursive = TRUE)
 #' @export
 use_pages_workflow <- function(dir = ".") {
   root <- normalizePath(dir, mustWork = TRUE)

@@ -32,7 +32,7 @@ everything, as Hugo serves it).}
 \item{publications}{How to migrate a publications page found in the menu
 (slug \code{publications}, \code{papers} or \code{pubs}). \code{"bib"} (default) extracts
 the DOIs from the page, fetches each reference as BibTeX from
-\url{https://doi.org} (Crossref/DataCite content negotiation; needs
+\url{https://www.doi.org/} (Crossref/DataCite content negotiation; needs
 network), pairs preview images found next to each DOI, and writes
 \verb{_bibliography/papers.bib} so al-folio's jekyll-scholar renders the
 publications page with the theme's badges and buttons. Entries

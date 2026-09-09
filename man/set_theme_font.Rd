@@ -44,9 +44,14 @@ site-local stylesheet (they are valid anywhere in a stylesheet, unlike
 replaces the previous override.
 }
 \examples{
+# a system font, no download
+site <- new_site(tempfile("my-blog"))
+set_theme_font("Georgia", size = "17px", google = FALSE, dir = site)
+unlink(site, recursive = TRUE)
+
 \dontrun{
-set_theme_font("Lora", size = "17px")     # from inside the site
+# Google Fonts, fetched and inlined; from inside the site:
+set_theme_font("Lora", size = "17px")
 set_theme_font(code = "JetBrains Mono")
-set_theme_font("Lora", dir = "my-site")   # from outside
 }
 }

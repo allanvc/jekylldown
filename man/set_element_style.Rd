@@ -57,13 +57,15 @@ middle ground before dropping to \code{\link[=add_css]{add_css()}}.
 }
 
 \examples{
+site <- new_site(tempfile("my-blog"))
+set_element_style("navbar", background = "#222222", color = "white",
+                  dir = site)
+set_element_style("headings", color = "red", font_weight = "600",
+                  dir = site)
+unlink(site, recursive = TRUE)
+
 \dontrun{
 # from anywhere inside the site's project:
-set_element_style("navbar", background = "#222222", color = "white")
-set_element_style("headings", color = "red", font_weight = "600")
 set_element_style("socials", size = "2rem")
-
-# from outside, name the site:
-set_element_style("navbar", background = "#222222", dir = "my-site")
 }
 }

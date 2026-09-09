@@ -235,7 +235,7 @@ ri_pick_asset <- function(release_json) {
 #' This is a private copy for the toolchain: it does not appear on your
 #' system `PATH`, so it does not replace a real git installation for
 #' everyday version-control work (for publishing a site with
-#' `git push`, install git from <https://git-scm.com/downloads>).
+#' `git push`, install git from <https://git-scm.com/downloads/>).
 #'
 #' @param file Optional path to an already-downloaded
 #'   `MinGit-<version>-64-bit.zip`, for offline installs. Default `NULL`

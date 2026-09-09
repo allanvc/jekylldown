@@ -8,9 +8,7 @@
 #'   directory; not finding a site is reported, not an error.
 #' @return Invisibly, a named list with the collected information.
 #' @examples
-#' \dontrun{
 #' jekylldown::check()
-#' }
 #' @export
 check <- function(dir = ".") {
   cli::cli_h1("jekylldown sitrep")

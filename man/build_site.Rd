@@ -25,12 +25,15 @@ Knits every outdated \verb{_source/*.Rmd} and renders every outdated
 \verb{jekyll build} if a usable Jekyll is available.
 }
 \examples{
-\dontrun{
-# knit/render outdated posts, then build with the local Jekyll (if any)
-build_site("my-site")
+# knit only, no Jekyll needed: what a GitHub Actions setup uses
+site <- new_site(tempfile("my-blog"))
+build_site(site, local_jekyll = FALSE)
+list.files(file.path(site, "_posts"))
+unlink(site, recursive = TRUE)
 
-# knit only -- e.g. when GitHub Actions does the Jekyll build remotely
-build_site("my-site", local_jekyll = FALSE)
+\dontrun{
+# knit/render outdated posts, then build with the local Jekyll
+build_site("my-site")
 
 # re-knit everything from scratch
 build_site("my-site", force = TRUE)

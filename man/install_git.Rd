@@ -41,7 +41,7 @@ unreachable. x86-64 only.
 This is a private copy for the toolchain: it does not appear on your
 system \code{PATH}, so it does not replace a real git installation for
 everyday version-control work (for publishing a site with
-\verb{git push}, install git from \url{https://git-scm.com/downloads}).
+\verb{git push}, install git from \url{https://git-scm.com/downloads/}).
 }
 \examples{
 \dontrun{

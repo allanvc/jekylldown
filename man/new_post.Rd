@@ -44,10 +44,11 @@ with \code{format = "md"}, a plain \verb{_posts/YYYY-MM-DD-slug.md}, all with
 Jekyll front matter.
 }
 \examples{
-\dontrun{
-new_post("Hello world", dir = "my-site")
-new_post("A Quarto post", format = "qmd", dir = "my-site")
-new_post("Plain Markdown, no R code", format = "md", dir = "my-site",
-         tags = c("news", "r"))
-}
+site <- new_site(tempfile("my-blog"), sample = FALSE)
+new_post("Hello world", dir = site, open = FALSE)
+new_post("A Quarto post", format = "qmd", dir = site, open = FALSE)
+new_post("Plain Markdown, no R code", format = "md", dir = site,
+         tags = c("news", "r"), open = FALSE)
+list.files(file.path(site, "_source"))
+unlink(site, recursive = TRUE)
 }

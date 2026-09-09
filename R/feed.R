@@ -86,9 +86,13 @@ rb_close <- "<!-- <<< jekylldown r-bloggers -->"
 #'   (the main feed first), with the include's path as attribute
 #'   `"include"`.
 #' @examples
+#' site <- new_site(tempfile("my-blog"))
+#' add_feed(category = "R", dir = site)   # feed.xml plus feed/R.xml
+#' readLines(file.path(site, "feed", "R.xml"))
+#' unlink(site, recursive = TRUE)
+#'
 #' \dontrun{
 #' add_feed()                  # fix the feed title on an al-folio site
-#' add_feed(category = "R")    # plus /feed/R.xml with the R posts only
 #' }
 #' @seealso [use_r_bloggers()]
 #' @export
@@ -129,9 +133,9 @@ add_feed <- function(category = NULL, dir = ".", force = FALSE) {
 #'   (the public feed URL, from the site's `url` and `baseurl`) and
 #'   `link` (the page the link was added to, or `NULL`).
 #' @examples
-#' \dontrun{
-#' use_r_bloggers()
-#' }
+#' site <- new_site(tempfile("my-blog"))
+#' use_r_bloggers(dir = site)
+#' unlink(site, recursive = TRUE)
 #' @export
 use_r_bloggers <- function(category = "R", dir = ".") {
   abort_if_site_path(category, "use_r_bloggers")

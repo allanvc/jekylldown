@@ -64,10 +64,12 @@ jekyll-feed's template (see \code{\link[=add_feed]{add_feed()}}), so that the th
 title instead of the literal word "blank".
 }
 \examples{
-\dontrun{
 # a minimal blog with the locally generated minima theme (no network)
-new_site("my-blog")
+site <- new_site(tempfile("my-blog"))
+list.files(site)
+unlink(site, recursive = TRUE)
 
+\dontrun{
 # the al-folio academic theme, fetched from GitHub, starting empty
 new_site("my-site", theme = "al-folio", demo = FALSE)
 

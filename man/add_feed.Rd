@@ -68,9 +68,13 @@ sites. Call it yourself on an existing site, or on any theme where
 you want per-category feeds.
 }
 \examples{
+site <- new_site(tempfile("my-blog"))
+add_feed(category = "R", dir = site)   # feed.xml plus feed/R.xml
+readLines(file.path(site, "feed", "R.xml"))
+unlink(site, recursive = TRUE)
+
 \dontrun{
 add_feed()                  # fix the feed title on an al-folio site
-add_feed(category = "R")    # plus /feed/R.xml with the R posts only
 }
 }
 \seealso{

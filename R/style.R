@@ -280,10 +280,15 @@ mm_skins <- function(root) {
 #'   default `"."` works from anywhere in the site's project.
 #' @return Invisibly, the path of the stylesheet written.
 #' @examples
+#' # a system font, no download
+#' site <- new_site(tempfile("my-blog"))
+#' set_theme_font("Georgia", size = "17px", google = FALSE, dir = site)
+#' unlink(site, recursive = TRUE)
+#'
 #' \dontrun{
-#' set_theme_font("Lora", size = "17px")     # from inside the site
+#' # Google Fonts, fetched and inlined; from inside the site:
+#' set_theme_font("Lora", size = "17px")
 #' set_theme_font(code = "JetBrains Mono")
-#' set_theme_font("Lora", dir = "my-site")   # from outside
 #' }
 #' @export
 set_theme_font <- function(family = NULL, size = NULL,
@@ -377,14 +382,16 @@ set_theme_font <- function(family = NULL, size = NULL,
 #'   default `"."` works from anywhere in the site's project.
 #' @return Invisibly, the CSS selector styled.
 #' @examples
+#' site <- new_site(tempfile("my-blog"))
+#' set_element_style("navbar", background = "#222222", color = "white",
+#'                   dir = site)
+#' set_element_style("headings", color = "red", font_weight = "600",
+#'                   dir = site)
+#' unlink(site, recursive = TRUE)
+#'
 #' \dontrun{
 #' # from anywhere inside the site's project:
-#' set_element_style("navbar", background = "#222222", color = "white")
-#' set_element_style("headings", color = "red", font_weight = "600")
 #' set_element_style("socials", size = "2rem")
-#'
-#' # from outside, name the site:
-#' set_element_style("navbar", background = "#222222", dir = "my-site")
 #' }
 #' @export
 set_element_style <- function(element, color = NULL,
@@ -458,15 +465,16 @@ set_element_style <- function(element, color = NULL,
 #'   default `"."` works from anywhere in the site's project.
 #' @return Invisibly, the path of the stylesheet written.
 #' @examples
-#' \dontrun{
-#' add_css(".profile img { border-radius: 50%; }", id = "round-avatar")
-#'
-#' # from outside the site:
+#' site <- new_site(tempfile("my-blog"))
 #' add_css(".profile img { border-radius: 50%; }", id = "round-avatar",
-#'         dir = "my-site")
-#'
+#'         dir = site)
 #' # remove it later
-#' add_css(character(0), id = "round-avatar")
+#' add_css(character(0), id = "round-avatar", dir = site)
+#' unlink(site, recursive = TRUE)
+#'
+#' \dontrun{
+#' # from anywhere inside the site's project:
+#' add_css(".profile img { border-radius: 50%; }", id = "round-avatar")
 #' }
 #' @export
 add_css <- function(css, id = "custom", dir = ".") {

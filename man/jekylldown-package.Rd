@@ -6,7 +6,7 @@
 \alias{jekylldown-package}
 \title{jekylldown: Create, Build and Serve 'Jekyll' Websites from 'R Markdown' and 'Quarto'}
 \description{
-Do for 'Jekyll' what 'blogdown' does for 'Hugo': create sites from the most popular themes ('al-folio', 'Chirpy', 'Minimal Mistakes', 'minima'), write posts in R Markdown or 'Quarto' that are knitted to Markdown consumed natively by 'Jekyll', customize theme colors, fonts and elements declaratively from R, migrate 'blogdown'/'Hugo' sites, build and serve the site locally with live reload, and diagnose the Ruby/Jekyll toolchain. Jekyll is invoked strictly via its command line interface; no R-Ruby language bridge is used.
+Do for 'Jekyll' what 'blogdown' does for 'Hugo': create sites from the most popular themes ('al-folio', 'Chirpy', 'Minimal Mistakes', 'minima'), write posts in R Markdown or 'Quarto' that are knitted to Markdown consumed natively by 'Jekyll', customize theme colors, fonts and elements declaratively from R, migrate 'blogdown'/'Hugo' sites, build and serve the site locally with live reload, and diagnose the Ruby/'Jekyll' toolchain. 'Jekyll' is invoked strictly via its command line interface; no R-Ruby language bridge is used.
 }
 \seealso{
 Useful links:

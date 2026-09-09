@@ -29,14 +29,15 @@ edits scattered through theme files. Works with any theme whose site
 has (or can get) a local \code{main.scss}.
 }
 \examples{
-\dontrun{
-add_css(".profile img { border-radius: 50\%; }", id = "round-avatar")
-
-# from outside the site:
+site <- new_site(tempfile("my-blog"))
 add_css(".profile img { border-radius: 50\%; }", id = "round-avatar",
-        dir = "my-site")
-
+        dir = site)
 # remove it later
-add_css(character(0), id = "round-avatar")
+add_css(character(0), id = "round-avatar", dir = site)
+unlink(site, recursive = TRUE)
+
+\dontrun{
+# from anywhere inside the site's project:
+add_css(".profile img { border-radius: 50\%; }", id = "round-avatar")
 }
 }

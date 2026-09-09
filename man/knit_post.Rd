@@ -48,11 +48,15 @@ the generated \code{build.R}), but exported so those entry points and users can
 share one implementation.
 }
 \examples{
-\dontrun{
 # normally called for you by build_site()/serve_site()
-knit_post("my-site/_source/2026-01-01-hello.Rmd",
-          "my-site/_posts/2026-01-01-hello.md")
+site <- new_site(tempfile("my-blog"))
+src <- list.files(file.path(site, "_source"), full.names = TRUE)[1]
+out <- file.path(site, "_posts", xfun::with_ext(basename(src), "md"))
+knit_post(src, out)
+readLines(out, n = 8)
+unlink(site, recursive = TRUE)
 
+\dontrun{
 # force the pandoc pipeline for one post (citations, footnotes, ...)
 knit_post("my-site/_source/2026-01-01-paper.Rmd",
           "my-site/_posts/2026-01-01-paper.md", method = "pandoc")

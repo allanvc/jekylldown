@@ -214,7 +214,7 @@ bundle_install <- function(dir = ".") {
          jekylldown's isolated toolchain, then re-run
          {.code bundle_install(\"{dir}\")}."
       } else {
-        "Install git from {.url https://git-scm.com/downloads} and
+        "Install git from {.url https://git-scm.com/downloads/} and
          re-run {.code bundle_install(\"{dir}\")}."
       }))
   }

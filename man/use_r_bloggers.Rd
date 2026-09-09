@@ -38,7 +38,7 @@ Only posts whose front matter carries the category enter the feed:
 Posts about anything else stay out, which is what R-Bloggers asks.
 }
 \examples{
-\dontrun{
-use_r_bloggers()
-}
+site <- new_site(tempfile("my-blog"))
+use_r_bloggers(dir = site)
+unlink(site, recursive = TRUE)
 }

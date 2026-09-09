@@ -11,11 +11,12 @@ Description: Do for 'Jekyll' what 'blogdown' does for 'Hugo': create sites
     that are knitted to Markdown consumed natively by 'Jekyll', customize
     theme colors, fonts and elements declaratively from R, migrate
     'blogdown'/'Hugo' sites, build and serve the site locally with live
-    reload, and diagnose the Ruby/Jekyll toolchain. Jekyll is invoked
+    reload, and diagnose the Ruby/'Jekyll' toolchain. 'Jekyll' is invoked
     strictly via its command line interface; no R-Ruby language bridge is
     used.
 License: MIT + file LICENSE
 Encoding: UTF-8
+Language: en-US
 Roxygen: list(markdown = TRUE)
 Imports:
     cli,

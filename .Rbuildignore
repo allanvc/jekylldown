@@ -6,3 +6,5 @@
 ^build_and_install\.R$
 ^mysite$
 ^\.Rproj\.user$
+^cran-comments\.md$
+^CRAN-SUBMISSION$
