@@ -8,13 +8,17 @@ jekylldown 0.3.4 is a first submission.
 * GitHub Actions: ubuntu-latest (R release) and windows-latest (R release),
   R CMD check, plus a Windows end-to-end run that installs Ruby and
   builds two sites
-* win-builder: R-devel
+* win-builder: R-devel (R Under development 2026-09-08 r90509, Windows
+  Server 2022): 1 note, the new-submission one
 
 ## R CMD check results
 
 0 errors | 0 warnings | 1 note
 
 * This is a new submission.
+* win-builder (R-devel, 2026-09-08 r90509) also lists "possibly
+  misspelled words" in DESCRIPTION: declaratively, natively and
+  toolchain. All three are ordinary English words used as intended.
 
 ## Notes for the reviewer
 
