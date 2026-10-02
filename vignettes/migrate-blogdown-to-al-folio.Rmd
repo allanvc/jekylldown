@@ -142,7 +142,7 @@ al-folio's rich `_config.yml` deserves a pass by hand:
   the page are extracted and fetched as BibTeX from doi.org, so
   al-folio's jekyll-scholar renders the publications page with the
   theme's badges and buttons -- deterministic and reproducible (the DOI
-  registry, not a heuristic parser or an LLM, is the source of truth).
+  registry, not a heuristic parser, is the source of truth).
   Publications without a DOI are listed in the report; add them to
   `_bibliography/papers.bib` by hand. `publications = "html"` migrates
   your hand-written page as-is instead -- that is also the automatic
