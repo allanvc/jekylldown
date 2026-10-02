@@ -4,7 +4,7 @@
 \alias{add_feed}
 \title{Atom feeds with a correct title, optionally per category}
 \usage{
-add_feed(category = NULL, dir = ".", force = FALSE)
+add_feed(category = NULL, dir, force = FALSE)
 }
 \arguments{
 \item{category}{Optional character vector of post categories, one
@@ -72,10 +72,6 @@ site <- new_site(tempfile("my-blog"))
 add_feed(category = "R", dir = site)   # feed.xml plus feed/R.xml
 readLines(file.path(site, "feed", "R.xml"))
 unlink(site, recursive = TRUE)
-
-\dontrun{
-add_feed()                  # fix the feed title on an al-folio site
-}
 }
 \seealso{
 \code{\link[=use_r_bloggers]{use_r_bloggers()}}

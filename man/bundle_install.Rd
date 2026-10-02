@@ -4,7 +4,7 @@
 \alias{bundle_install}
 \title{Install a site's gem dependencies with Bundler}
 \usage{
-bundle_install(dir = ".")
+bundle_install(dir)
 }
 \arguments{
 \item{dir}{Directory in (or under) the site.}
@@ -26,10 +26,4 @@ shells out to it -- the only step in the jekylldown workflow that
 requires git. On Windows, \code{\link[=install_git]{install_git()}} puts a portable copy in
 the isolated toolchain; elsewhere install it with your package
 manager.
-}
-\examples{
-\dontrun{
-bundle_install("my-site")
-build_site("my-site")   # now builds with `bundle exec jekyll`
-}
 }

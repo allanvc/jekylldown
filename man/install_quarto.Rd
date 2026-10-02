@@ -28,11 +28,3 @@ targets); on other platforms install Quarto from
 \url{https://quarto.org/docs/get-started/} and it is picked up from the
 \code{PATH}.
 }
-\examples{
-\dontrun{
-install_quarto()
-
-# offline: point at a tarball downloaded elsewhere
-install_quarto(file = "~/Downloads/quarto-1.10.18-linux-amd64.tar.gz")
-}
-}

@@ -4,7 +4,7 @@
 \alias{serve_site}
 \title{Serve the site locally with live reload}
 \usage{
-serve_site(dir = ".", background = interactive(), port = NULL, ...)
+serve_site(dir, background = interactive(), port = NULL, ...)
 }
 \arguments{
 \item{dir}{Directory in (or under) the site.}

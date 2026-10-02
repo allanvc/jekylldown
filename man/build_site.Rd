@@ -4,7 +4,7 @@
 \alias{build_site}
 \title{Knit sources and build the site}
 \usage{
-build_site(dir = ".", local_jekyll = NULL, force = FALSE)
+build_site(dir, local_jekyll = NULL, force = FALSE)
 }
 \arguments{
 \item{dir}{Directory in (or under) the site.}

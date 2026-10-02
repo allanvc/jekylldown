@@ -113,7 +113,7 @@ jekyll_cmd <- function() {
 # surface as readable R errors. Sites with a Gemfile.lock (e.g. al-folio,
 # after bundle_install()) get `bundle exec jekyll` so their plugins resolve;
 # plain sites get the jekyll executable directly.
-run_jekyll <- function(args, dir = ".", echo = TRUE) {
+run_jekyll <- function(args, dir, echo = TRUE) {
   jekyll <- jekyll_cmd()
   if (is.null(jekyll)) {
     cli::cli_abort(c(
@@ -189,13 +189,8 @@ gemfile_needs_git <- function(root) {
 #'
 #' @param dir Directory in (or under) the site.
 #' @return Invisibly, the [processx::run()] result.
-#' @examples
-#' \dontrun{
-#' bundle_install("my-site")
-#' build_site("my-site")   # now builds with `bundle exec jekyll`
-#' }
 #' @export
-bundle_install <- function(dir = ".") {
+bundle_install <- function(dir) {
   root <- site_root(dir)
   bundle <- find_cmd("bundle")
   if (is.null(bundle)) {
@@ -236,7 +231,16 @@ bundle_install <- function(dir = ".") {
 }
 
 # Walk up from `dir` until a _config.yml is found.
-site_root <- function(dir = ".") {
+site_root <- function(dir) {
+  if (missing(dir)) {
+    cli::cli_abort(c(
+      "{.arg dir} is missing: pass the site directory (its root, or
+       any directory inside it).",
+      "i" = "jekylldown never writes to a default location, so every
+             function that changes a site takes {.arg dir}, e.g.
+             {.code build_site(\"my-site\")} or
+             {.code build_site(\".\")} from inside the site."))
+  }
   if (!dir.exists(dir)) {
     cli::cli_abort(
       "Directory {.path {dir}} does not exist. Pass the path to your

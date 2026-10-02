@@ -10,7 +10,7 @@ set_theme_font(
   headings = NULL,
   code = NULL,
   google = TRUE,
-  dir = "."
+  dir
 )
 }
 \arguments{
@@ -29,9 +29,8 @@ behavior -- i.e. unchanged unless given).}
 \item{google}{Fetch the given families from Google Fonts and inline
 their \verb{@font-face} rules? Default \code{TRUE}.}
 
-\item{dir}{Site root, or any directory inside it -- like
-\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
-default \code{"."} works from anywhere in the site's project.}
+\item{dir}{Site root, or any directory inside it. Like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site.}
 }
 \value{
 Invisibly, the path of the stylesheet written.
@@ -50,8 +49,8 @@ set_theme_font("Georgia", size = "17px", google = FALSE, dir = site)
 unlink(site, recursive = TRUE)
 
 \dontrun{
-# Google Fonts, fetched and inlined; from inside the site:
-set_theme_font("Lora", size = "17px")
-set_theme_font(code = "JetBrains Mono")
+# Google Fonts, fetched and inlined
+set_theme_font("Lora", size = "17px", dir = "my-site")
+set_theme_font(code = "JetBrains Mono", dir = "my-site")
 }
 }

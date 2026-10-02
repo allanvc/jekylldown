@@ -54,11 +54,3 @@ MSYS2 toolchain.
 On Linux and macOS install Ruby with your package manager instead (see
 the README's prerequisites); jekylldown picks it up from the \code{PATH}.
 }
-\examples{
-\dontrun{
-install_ruby()
-
-# offline: point at an archive downloaded elsewhere
-install_ruby(file = "C:/Users/me/Downloads/rubyinstaller-3.3.7-1-x64.7z")
-}
-}

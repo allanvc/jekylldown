@@ -134,12 +134,8 @@ date, then runs `jekyll build` if a local Jekyll exists (otherwise it
 just knits, which is all a remote deploy needs).
 
 For themes with a `Gemfile` (al-folio), install the theme's gems once
-into the isolated environment; jekylldown then switches to
-`bundle exec jekyll` automatically:
-
-```{r}
-bundle_install("my-site")
-```
+into the isolated environment with `bundle_install("my-site")`;
+jekylldown then switches to `bundle exec jekyll` automatically.
 
 Live preview with automatic rebuilds:
 
@@ -147,7 +143,7 @@ Live preview with automatic rebuilds:
 serve_site("my-blog")
 # ... edit and save any watched file: _source/*.Rmd or *.qmd, pages,
 # _config.yml, styles -- the site re-knits, rebuilds and reloads
-stop_server()
+stop_server("my-blog")
 ```
 
 ## 5. Edit the site afterwards
@@ -211,33 +207,37 @@ change or replace it, no hand-written CSS in theme files. (On al-folio,
 run `bundle_install()` once first.)
 
 ```{r}
-# run these from anywhere inside the site's project -- they find the
-# site root like build_site(); from outside, add dir = "my-site"
+# every helper takes the site via dir: its root, or any directory
+# inside it (they climb to the site root like build_site() does)
+site <- "my-site"
 
 # layer 1 -- the theme's own CSS variables (al-folio and Chirpy;
 # dark mode aware). Minimal Mistakes styles through compiled skins
-# instead: set_theme_skin("dark")
+# instead: set_theme_skin("dark", dir = site)
 set_theme_style(
   accent = "red",                     # palette name, #hex or any CSS color
   footer_background = "#222222",
-  background = c(light = "#fffdf7", dark = "#1c1c1d"))
+  background = c(light = "#fffdf7", dark = "#1c1c1d"),
+  dir = site)
 
 # layer 2 -- fonts (Google Fonts faces inlined) and base size
-set_theme_font("Lora", size = "17px", code = "JetBrains Mono")
+set_theme_font("Lora", size = "17px", code = "JetBrains Mono", dir = site)
 
 # layer 3 -- one semantic element at a time (see the caveat below)
-set_element_style("navbar", background = "#222222", color = "white")
-set_element_style("socials", size = "2rem")   # the social icon row
+set_element_style("navbar", background = "#222222", color = "white",
+                  dir = site)
+set_element_style("socials", size = "2rem", dir = site)   # social icon row
 
 # layer 4 -- the escape hatch: free-form CSS, but in a managed block
-add_css(".profile img { border-radius: 50%; }", id = "round-avatar")
+add_css(".profile img { border-radius: 50%; }", id = "round-avatar",
+        dir = site)
 
 # LaTeX math rendering, the way each theme expects it
-add_mathjax()
+add_mathjax(site)
 
 # footer credit ("Built from R with jekylldown X.Y.Z."); new_site()
 # adds it already, build_site() keeps the version current
-add_footer_credit()     # remove_footer_credit() undoes it
+add_footer_credit(site)     # remove_footer_credit(site) undoes it
 ```
 
 ## Feeds, and R-Bloggers
@@ -261,7 +261,7 @@ text. That is exactly what [R-Bloggers](https://www.r-bloggers.com/)
 asks for, so the whole setup is one call:
 
 ```{r}
-use_r_bloggers()          # category = "R" by default
+use_r_bloggers(dir = "my-site")          # category = "R" by default
 ```
 
 It writes the R-only feed, adds the link back to R-Bloggers under the
@@ -274,18 +274,18 @@ out of the aggregator, as its rules require. Image and link paths in
 the feed are absolute, built from `url:` in `_config.yml`, which is
 what R-Bloggers asks for whatever the theme.
 
-`set_theme_color("red")` remains as a shorthand for setting the accent,
-and `set_theme_color(NULL)` removes the override again. For a full
+`set_theme_color("red", dir = site)` remains as a shorthand for setting
+the accent, and `set_theme_color(NULL, dir = site)` removes the override
+again. For a full
 reset, delete the site-local stylesheet (`assets/css/main.scss`;
 `assets/main.scss` on minima): it holds only the theme's copy plus the
 managed blocks, and is recreated by the next customization call.
 
-All of these functions locate the site root from any directory inside
-the site, exactly like `build_site()` -- that is why the examples above
-carry no path. To customize a site your R session is *not* in, pass its
-location via the `dir` argument, e.g.
-`set_theme_color("#b509ac", dir = "my-site")`; called from outside a
-site without `dir`, they abort with a message asking for it.
+All of these functions take the site through `dir`, and climb to the
+site root from any directory inside it, exactly like `build_site()`.
+So `dir = "."` works from an R session running inside the site, and
+`dir = "my-site"` from outside. None of them writes anywhere by
+default: called without `dir`, they abort with a message asking for it.
 
 **Layer 3 is the fragile one.** Layers 1-2 go through interfaces the
 theme itself maintains (its CSS variables, standard HTML elements), so
@@ -321,5 +321,6 @@ need something the maps do not offer.
    Other hosts work too -- `_site/` is plain static files; see the
    README's *Publishing* section for Netlify, Cloudflare, GitLab and
    self-hosted setups.
-3. Day-to-day: `new_post()`, write, `build_site()` (or just knit with
-   `build_site(local_jekyll = FALSE)`), commit, push.
+3. Day-to-day: `new_post("Title", dir = site)`, write,
+   `build_site(site)` (or just knit with
+   `build_site(site, local_jekyll = FALSE)`), commit, push.

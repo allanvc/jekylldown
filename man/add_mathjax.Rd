@@ -4,12 +4,11 @@
 \alias{add_mathjax}
 \title{Enable LaTeX math rendering (MathJax)}
 \usage{
-add_mathjax(dir = ".")
+add_mathjax(dir)
 }
 \arguments{
-\item{dir}{Site root, or any directory inside it -- like
-\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
-default \code{"."} works from anywhere in the site's project.}
+\item{dir}{Site root, or any directory inside it. Like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site.}
 }
 \value{
 Invisibly, a short description of what was changed.

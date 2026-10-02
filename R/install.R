@@ -39,13 +39,6 @@
 #'   missing (MSYS2 pieces, gems -- already-installed gems are
 #'   skipped).
 #' @return The path to the installed `jekyll` command, invisibly.
-#' @examples
-#' \dontrun{
-#' install_ruby()
-#'
-#' # offline: point at an archive downloaded elsewhere
-#' install_ruby(file = "C:/Users/me/Downloads/rubyinstaller-3.3.7-1-x64.7z")
-#' }
 #' @export
 install_ruby <- function(file = NULL, devkit = TRUE, version = NULL,
                          force = FALSE) {
@@ -246,13 +239,6 @@ ri_pick_asset <- function(release_json) {
 #' @param force Re-download even when the toolchain directory already
 #'   holds a working git? Default `FALSE`.
 #' @return The path to the installed `git` executable, invisibly.
-#' @examples
-#' \dontrun{
-#' install_git()
-#'
-#' # offline: point at an archive downloaded elsewhere
-#' install_git(file = "C:/Users/me/Downloads/MinGit-2.55.0.3-64-bit.zip")
-#' }
 #' @export
 install_git <- function(file = NULL, version = NULL, force = FALSE) {
   if (!identical(.Platform$OS.type, "windows")) {
@@ -395,13 +381,6 @@ mg_tag_version <- function(html) {
 #'   `quarto-<version>-linux-amd64.tar.gz`, for offline installs. Default
 #'   `NULL` downloads the latest release from GitHub.
 #' @return The path to the installed `quarto` executable, invisibly.
-#' @examples
-#' \dontrun{
-#' install_quarto()
-#'
-#' # offline: point at a tarball downloaded elsewhere
-#' install_quarto(file = "~/Downloads/quarto-1.10.18-linux-amd64.tar.gz")
-#' }
 #' @export
 install_quarto <- function(file = NULL) {
   sysinfo <- Sys.info()

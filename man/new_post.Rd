@@ -10,7 +10,7 @@ new_post(
   format = c("Rmd", "qmd", "md"),
   tags = NULL,
   categories = NULL,
-  dir = ".",
+  dir,
   open = interactive(),
   rmd = NULL
 )
@@ -26,8 +26,7 @@ source; rendered by \code{\link[=build_site]{build_site()}} via the Quarto CLI),
 
 \item{tags, categories}{Optional character vectors for the front matter.}
 
-\item{dir}{Directory in (or under) the site. Defaults to the working
-directory.}
+\item{dir}{Directory in (or under) the site.}
 
 \item{open}{Open the file (via \code{\link[utils:file.edit]{utils::file.edit()}}) in interactive
 sessions?}

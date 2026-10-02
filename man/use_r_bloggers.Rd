@@ -4,7 +4,7 @@
 \alias{use_r_bloggers}
 \title{Set a site up for R-Bloggers}
 \usage{
-use_r_bloggers(category = "R", dir = ".")
+use_r_bloggers(category = "R", dir)
 }
 \arguments{
 \item{category}{The category that marks R posts; \code{"R"} by default.}

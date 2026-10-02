@@ -74,24 +74,20 @@ chirpy_style_vars <- c(
 #' This needs the theme gems: run [bundle_install()] once first.
 #'
 #' @param ... Named style options from the list above.
-#' @param dir Site root, or any directory inside it -- like
-#'   [build_site()], the function climbs to the enclosing site, so the
-#'   default `"."` works from anywhere in the site's project.
+#' @param dir Site root, or any directory inside it. Like
+#'   [build_site()], the function climbs to the enclosing site.
 #' @return Invisibly, the named list of CSS variables written.
 #' @examples
 #' \dontrun{
-#' # from anywhere inside the site's project:
 #' set_theme_style(
 #'   accent = "red",
 #'   footer_background = "#222222",
-#'   background = c(light = "#fffdf7", dark = "#1c1c1d")
+#'   background = c(light = "#fffdf7", dark = "#1c1c1d"),
+#'   dir = "my-site"
 #' )
-#'
-#' # from outside, name the site:
-#' set_theme_style(accent = "red", dir = "my-site")
 #' }
 #' @export
-set_theme_style <- function(..., dir = ".") {
+set_theme_style <- function(..., dir) {
   root <- site_root(dir)
   theme <- site_theme(root)
   if (theme %in% c("minimal-mistakes", "minima")) {
@@ -209,17 +205,15 @@ chirpy_style_block <- function(opts, vars_map) {
 #' `"plum"`, `"sunrise"`, ...).
 #'
 #' @param skin Skin name.
-#' @param dir Site root, or any directory inside it -- like
-#'   [build_site()], the function climbs to the enclosing site, so the
-#'   default `"."` works from anywhere in the site's project.
+#' @param dir Site root, or any directory inside it. Like
+#'   [build_site()], the function climbs to the enclosing site.
 #' @return Invisibly, the skin set.
 #' @examples
 #' \dontrun{
-#' set_theme_skin("dark")                     # from inside the site
-#' set_theme_skin("dark", dir = "my-site")    # from outside
+#' set_theme_skin("dark", dir = "my-site")
 #' }
 #' @export
-set_theme_skin <- function(skin, dir = ".") {
+set_theme_skin <- function(skin, dir) {
   abort_if_site_path(skin, "set_theme_skin")
   root <- site_root(dir)
   theme <- site_theme(root)
@@ -275,9 +269,8 @@ mm_skins <- function(root) {
 #' @param code Font family for code (`code`, `pre`, `kbd`, `samp`).
 #' @param google Fetch the given families from Google Fonts and inline
 #'   their `@font-face` rules? Default `TRUE`.
-#' @param dir Site root, or any directory inside it -- like
-#'   [build_site()], the function climbs to the enclosing site, so the
-#'   default `"."` works from anywhere in the site's project.
+#' @param dir Site root, or any directory inside it. Like
+#'   [build_site()], the function climbs to the enclosing site.
 #' @return Invisibly, the path of the stylesheet written.
 #' @examples
 #' # a system font, no download
@@ -286,14 +279,14 @@ mm_skins <- function(root) {
 #' unlink(site, recursive = TRUE)
 #'
 #' \dontrun{
-#' # Google Fonts, fetched and inlined; from inside the site:
-#' set_theme_font("Lora", size = "17px")
-#' set_theme_font(code = "JetBrains Mono")
+#' # Google Fonts, fetched and inlined
+#' set_theme_font("Lora", size = "17px", dir = "my-site")
+#' set_theme_font(code = "JetBrains Mono", dir = "my-site")
 #' }
 #' @export
 set_theme_font <- function(family = NULL, size = NULL,
                            headings = NULL, code = NULL, google = TRUE,
-                           dir = ".") {
+                           dir) {
   abort_if_site_path(family, "set_theme_font")
   root <- site_root(dir)
   if (is.null(family) && is.null(size) && is.null(headings) &&
@@ -377,9 +370,8 @@ set_theme_font <- function(family = NULL, size = NULL,
 #'   `#hex`, or any CSS color.
 #' @param ... Further CSS properties as named arguments, with `_` for
 #'   `-`: e.g. `font_weight = "600"`, `border_bottom = "none"`.
-#' @param dir Site root, or any directory inside it -- like
-#'   [build_site()], the function climbs to the enclosing site, so the
-#'   default `"."` works from anywhere in the site's project.
+#' @param dir Site root, or any directory inside it. Like
+#'   [build_site()], the function climbs to the enclosing site.
 #' @return Invisibly, the CSS selector styled.
 #' @examples
 #' site <- new_site(tempfile("my-blog"))
@@ -388,15 +380,10 @@ set_theme_font <- function(family = NULL, size = NULL,
 #' set_element_style("headings", color = "red", font_weight = "600",
 #'                   dir = site)
 #' unlink(site, recursive = TRUE)
-#'
-#' \dontrun{
-#' # from anywhere inside the site's project:
-#' set_element_style("socials", size = "2rem")
-#' }
 #' @export
 set_element_style <- function(element, color = NULL,
                               background = NULL, size = NULL, ...,
-                              dir = ".") {
+                              dir) {
   abort_if_site_path(element, "set_element_style")
   root <- site_root(dir)
   map <- jd_element_map(site_theme(root))
@@ -460,9 +447,8 @@ set_element_style <- function(element, color = NULL,
 #'   removes the block with this `id`.
 #' @param id Identifier of the block (lowercase letters, digits, `-`,
 #'   `_`), so independent customizations do not overwrite each other.
-#' @param dir Site root, or any directory inside it -- like
-#'   [build_site()], the function climbs to the enclosing site, so the
-#'   default `"."` works from anywhere in the site's project.
+#' @param dir Site root, or any directory inside it. Like
+#'   [build_site()], the function climbs to the enclosing site.
 #' @return Invisibly, the path of the stylesheet written.
 #' @examples
 #' site <- new_site(tempfile("my-blog"))
@@ -471,13 +457,8 @@ set_element_style <- function(element, color = NULL,
 #' # remove it later
 #' add_css(character(0), id = "round-avatar", dir = site)
 #' unlink(site, recursive = TRUE)
-#'
-#' \dontrun{
-#' # from anywhere inside the site's project:
-#' add_css(".profile img { border-radius: 50%; }", id = "round-avatar")
-#' }
 #' @export
-add_css <- function(css, id = "custom", dir = ".") {
+add_css <- function(css, id = "custom", dir) {
   abort_if_site_path(css, "add_css")
   root <- site_root(dir)
   if (!grepl("^[a-z0-9_-]+$", id)) {
@@ -722,16 +703,15 @@ fetch_google_font_css <- function(family) {
 #' for math, so the v2 bundle is loaded where jekylldown injects the
 #' script itself; al-folio and Chirpy ship their own MathJax setups.
 #'
-#' @param dir Site root, or any directory inside it -- like
-#'   [build_site()], the function climbs to the enclosing site, so the
-#'   default `"."` works from anywhere in the site's project.
+#' @param dir Site root, or any directory inside it. Like
+#'   [build_site()], the function climbs to the enclosing site.
 #' @return Invisibly, a short description of what was changed.
 #' @examples
 #' \dontrun{
 #' add_mathjax("my-site")
 #' }
 #' @export
-add_mathjax <- function(dir = ".") {
+add_mathjax <- function(dir) {
   root <- site_root(dir)
   theme <- site_theme(root)
   config <- file.path(root, "_config.yml")

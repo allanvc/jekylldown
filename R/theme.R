@@ -30,22 +30,17 @@
 #' @param color A named theme color (e.g. `"red"`, `"blue"`, `"green"`,
 #'   `"cyan"`, `"purple"`, `"pink"`, `"orange"`, `"yellow"`) or a CSS hex
 #'   value like `"#b71c1c"`.
-#' @param dir Site root, or any directory inside it -- like
-#'   [build_site()], the function climbs to the enclosing site, so the
-#'   default `"."` works from anywhere in the site's project.
+#' @param dir Site root, or any directory inside it. Like
+#'   [build_site()], the function climbs to the enclosing site.
 #' @return The hex color applied, invisibly.
 #' @examples
 #' \dontrun{
-#' # from anywhere inside the site's project:
-#' set_theme_color("red")
-#' set_theme_color("#0057b7")
-#' set_theme_color(NULL)                      # back to the theme default
-#'
-#' # from outside, name the site:
 #' set_theme_color("red", dir = "my-site")
+#' set_theme_color("#0057b7", dir = "my-site")
+#' set_theme_color(NULL, dir = "my-site")   # back to the theme default
 #' }
 #' @export
-set_theme_color <- function(color = NULL, dir = ".") {
+set_theme_color <- function(color = NULL, dir) {
   abort_if_site_path(color, "set_theme_color")
   root <- site_root(dir)
   theme <- site_theme(root)

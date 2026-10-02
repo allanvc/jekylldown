@@ -1,5 +1,23 @@
 # jekylldown 0.3.4
 
+* Every function that writes into a site now requires the site
+  directory: `dir` has no default any more in `build_site()`,
+  `serve_site()`, `stop_server()`, `bundle_install()`, `new_post()`,
+  `use_pages_workflow()`, `add_feed()`, `use_r_bloggers()`,
+  `add_footer_credit()`, `remove_footer_credit()`, `set_theme_color()`,
+  `set_theme_style()`, `set_theme_skin()`, `set_theme_font()`,
+  `set_element_style()`, `add_css()` and `add_mathjax()`. CRAN policy
+  does not allow writing to a default location such as the working
+  directory. Pass `dir = "."` from a session running inside the site,
+  or the site's path from outside; the functions still climb to the
+  site root from any directory inside it. Calling one without `dir`
+  aborts with a message saying so. `check()` only reads and keeps its
+  default.
+* The examples of `install_ruby()`, `install_git()`, `install_quarto()`
+  and `bundle_install()` are gone (CRAN asks that examples never
+  install software, not even inside `\dontrun{}`); their help pages
+  describe the calls instead.
+
 * New `add_feed()`: renders the site's Atom feeds from a site-level copy
   of jekyll-feed's template (`_includes/atom-feed.xml`), patched so that
   al-folio's `title: blank` convention yields the author's full name as

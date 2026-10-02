@@ -34,17 +34,16 @@ credit_sentence <- function() {
 #'
 #' Undo with [remove_footer_credit()].
 #'
-#' @param dir Site root, or any directory inside it -- like
-#'   [build_site()], the function climbs to the enclosing site, so the
-#'   default `"."` works from anywhere in the site's project.
+#' @param dir Site root, or any directory inside it. Like
+#'   [build_site()], the function climbs to the enclosing site.
 #' @return Invisibly, the file the credit was written to.
 #' @examples
 #' \dontrun{
-#' add_footer_credit()
-#' remove_footer_credit()
+#' add_footer_credit("my-site")
+#' remove_footer_credit("my-site")
 #' }
 #' @export
-add_footer_credit <- function(dir = ".") {
+add_footer_credit <- function(dir) {
   root <- site_root(dir)
   theme <- site_theme(root)
   path <- if (theme == "al-folio" || fc_has_footer_text(root)) {
@@ -60,7 +59,7 @@ add_footer_credit <- function(dir = ".") {
 
 #' @rdname add_footer_credit
 #' @export
-remove_footer_credit <- function(dir = ".") {
+remove_footer_credit <- function(dir) {
   root <- site_root(dir)
   removed <- FALSE
 

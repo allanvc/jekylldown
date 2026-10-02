@@ -211,7 +211,7 @@ new_site("mysite")                        # scaffold a Jekyll site
 new_post("My first post", dir = "mysite") # creates _source/YYYY-MM-DD-my-first-post.Rmd
 build_site("mysite")                      # knit .Rmd -> .md, then `jekyll build`
 serve_site("mysite")                      # live preview with rebuild on save
-stop_server()
+stop_server("mysite")
 ```
 
 `new_site()` also scaffolds `theme = "al-folio"`, `"chirpy"` or
@@ -230,44 +230,47 @@ Declarative, idempotent, dark-mode aware -- no hand-written CSS in theme
 files. Four layers, most robust first:
 
 ``` r
-# run from anywhere inside the site's project (they find the site root
-# like build_site()); from outside, add dir = "mysite"
+# every helper takes the site via dir: its root, or any directory
+# inside it (they climb to the site root like build_site() does)
+site <- "mysite"
 
 # 1. the theme's own CSS variables (al-folio and Chirpy)
 set_theme_style(accent = "red",
-                background = c(light = "#fffdf7", dark = "#1c1c1d"))
+                background = c(light = "#fffdf7", dark = "#1c1c1d"),
+                dir = site)
 
 # Minimal Mistakes styles through compiled skins instead:
-set_theme_skin("dark")
+set_theme_skin("dark", dir = site)
 
 # 2. fonts (Google Fonts inlined) and base size
-set_theme_font("Lora", size = "17px")
+set_theme_font("Lora", size = "17px", dir = site)
 
 # 3. one semantic element at a time (the fragile layer -- see its docs)
-set_element_style("navbar", background = "#222", color = "white")
-set_element_style("socials", size = "2rem")   # social icon row
+set_element_style("navbar", background = "#222", color = "white",
+                  dir = site)
+set_element_style("socials", size = "2rem", dir = site)   # social icon row
 
 # 4. escape hatch: free-form CSS in a managed, removable block
-add_css(".profile img { border-radius: 50%; }", id = "avatar")
+add_css(".profile img { border-radius: 50%; }", id = "avatar", dir = site)
 
 # footer credit ("Built from R with jekylldown X.Y.Z."), added by
 # new_site() and version-refreshed by build_site()
-add_footer_credit()     # remove_footer_credit() undoes it
+add_footer_credit(site)     # remove_footer_credit(site) undoes it
 
 # Atom feeds from a site-level copy of jekyll-feed's template. On
 # al-folio the feed title becomes your name instead of the literal word
 # "blank"; new_site() does this already. Per-category feeds work on any
 # theme.
-add_feed(category = "R")   # feed/R.xml: the R posts only, full text
+add_feed(category = "R", dir = site)   # feed/R.xml: the R posts, full text
 
 # R-Bloggers in one call: the R-only feed, the link back to R-Bloggers
 # on the blog page, and the feed URL to submit
-use_r_bloggers()
+use_r_bloggers(dir = site)
 ```
 
-To undo the accent, call `set_theme_color(NULL)`; deleting the
-site-local stylesheet (`assets/css/main.scss`) drops every customization
-at once.
+To undo the accent, call `set_theme_color(NULL, dir = site)`; deleting
+the site-local stylesheet (`assets/css/main.scss`) drops every
+customization at once.
 
 ## Migrating from blogdown/Hugo
 

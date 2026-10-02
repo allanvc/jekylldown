@@ -4,7 +4,7 @@
 \alias{use_pages_workflow}
 \title{Add a GitHub Pages deploy workflow to the site}
 \usage{
-use_pages_workflow(dir = ".")
+use_pages_workflow(dir)
 }
 \arguments{
 \item{dir}{Site root.}

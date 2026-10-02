@@ -5,14 +5,13 @@
 \alias{remove_footer_credit}
 \title{Add a jekylldown credit to the site footer}
 \usage{
-add_footer_credit(dir = ".")
+add_footer_credit(dir)
 
-remove_footer_credit(dir = ".")
+remove_footer_credit(dir)
 }
 \arguments{
-\item{dir}{Site root, or any directory inside it -- like
-\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
-default \code{"."} works from anywhere in the site's project.}
+\item{dir}{Site root, or any directory inside it. Like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site.}
 }
 \value{
 Invisibly, the file the credit was written to.
@@ -38,7 +37,7 @@ Undo with \code{\link[=remove_footer_credit]{remove_footer_credit()}}.
 }
 \examples{
 \dontrun{
-add_footer_credit()
-remove_footer_credit()
+add_footer_credit("my-site")
+remove_footer_credit("my-site")
 }
 }

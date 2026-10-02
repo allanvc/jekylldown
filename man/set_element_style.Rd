@@ -10,7 +10,7 @@ set_element_style(
   background = NULL,
   size = NULL,
   ...,
-  dir = "."
+  dir
 )
 }
 \arguments{
@@ -23,9 +23,8 @@ set_element_style(
 \item{...}{Further CSS properties as named arguments, with \verb{_} for
 \code{-}: e.g. \code{font_weight = "600"}, \code{border_bottom = "none"}.}
 
-\item{dir}{Site root, or any directory inside it -- like
-\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
-default \code{"."} works from anywhere in the site's project.}
+\item{dir}{Site root, or any directory inside it. Like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site.}
 }
 \value{
 Invisibly, the CSS selector styled.
@@ -63,9 +62,4 @@ set_element_style("navbar", background = "#222222", color = "white",
 set_element_style("headings", color = "red", font_weight = "600",
                   dir = site)
 unlink(site, recursive = TRUE)
-
-\dontrun{
-# from anywhere inside the site's project:
-set_element_style("socials", size = "2rem")
-}
 }

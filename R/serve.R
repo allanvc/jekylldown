@@ -45,7 +45,7 @@
 #' stop_server("my-site")
 #' }
 #' @export
-serve_site <- function(dir = ".", background = interactive(), port = NULL,
+serve_site <- function(dir, background = interactive(), port = NULL,
                        ...) {
   root <- site_root(dir)
   jekyll <- jekyll_cmd()
@@ -256,7 +256,7 @@ jekyll_baseurl <- function(root) {
 #' stop_server("my-site")
 #' }
 #' @export
-stop_server <- function(dir = ".") {
+stop_server <- function(dir) {
   root <- tryCatch(site_root(dir), error = function(e) NULL)
   if (!is.null(root)) {
     pid_file <- file.path(root, ".jekylldown-serve.pid")

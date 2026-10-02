@@ -90,13 +90,9 @@ rb_close <- "<!-- <<< jekylldown r-bloggers -->"
 #' add_feed(category = "R", dir = site)   # feed.xml plus feed/R.xml
 #' readLines(file.path(site, "feed", "R.xml"))
 #' unlink(site, recursive = TRUE)
-#'
-#' \dontrun{
-#' add_feed()                  # fix the feed title on an al-folio site
-#' }
 #' @seealso [use_r_bloggers()]
 #' @export
-add_feed <- function(category = NULL, dir = ".", force = FALSE) {
+add_feed <- function(category = NULL, dir, force = FALSE) {
   abort_if_site_path(category, "add_feed")
   root <- site_root(dir)
   inc <- ensure_feed_include(root, force = force)
@@ -137,7 +133,7 @@ add_feed <- function(category = NULL, dir = ".", force = FALSE) {
 #' use_r_bloggers(dir = site)
 #' unlink(site, recursive = TRUE)
 #' @export
-use_r_bloggers <- function(category = "R", dir = ".") {
+use_r_bloggers <- function(category = "R", dir) {
   abort_if_site_path(category, "use_r_bloggers")
   if (!is.character(category) || length(category) != 1 ||
       !nzchar(trimws(category))) {
@@ -384,7 +380,7 @@ patch_feed_template <- function(lines, version, source) {
   # the marker goes right after the XML declaration, never before it:
   # anything ahead of <?xml ?> makes the document ill-formed
   marker <- sprintf(
-    "{%% comment %%}%s %s (%s). Regenerate with jekylldown::add_feed(force = TRUE); edits here are lost then.{%% endcomment %%}",
+    "{%% comment %%}%s %s (%s). Regenerate with jekylldown::add_feed(dir = <site>, force = TRUE); edits here are lost then.{%% endcomment %%}",
     feed_marker, version, source)
   decl <- grep("^<\\?xml", lines)
   append(lines, marker, after = if (length(decl)) decl[1] else 0)

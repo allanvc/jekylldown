@@ -12,8 +12,7 @@
 #' @param rmd Deprecated alias kept for compatibility: `rmd = FALSE` is
 #'   `format = "md"`.
 #' @param tags,categories Optional character vectors for the front matter.
-#' @param dir Directory in (or under) the site. Defaults to the working
-#'   directory.
+#' @param dir Directory in (or under) the site.
 #' @param open Open the file (via [utils::file.edit()]) in interactive
 #'   sessions?
 #' @return The path to the created file, invisibly.
@@ -29,7 +28,7 @@
 new_post <- function(title, date = Sys.Date(),
                      format = c("Rmd", "qmd", "md"),
                      tags = NULL, categories = NULL,
-                     dir = ".", open = interactive(), rmd = NULL) {
+                     dir, open = interactive(), rmd = NULL) {
   format <- match.arg(format)
   if (!is.null(rmd)) format <- if (isTRUE(rmd)) "Rmd" else "md"
   root <- site_root(dir)

@@ -30,7 +30,7 @@
 #' use_pages_workflow(site)
 #' unlink(site, recursive = TRUE)
 #' @export
-use_pages_workflow <- function(dir = ".") {
+use_pages_workflow <- function(dir) {
   root <- normalizePath(dir, mustWork = TRUE)
   wf_dir <- file.path(root, ".github", "workflows")
   existing <- list.files(wf_dir, "[.]ya?ml$", full.names = TRUE)

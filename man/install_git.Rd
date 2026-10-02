@@ -43,11 +43,3 @@ system \code{PATH}, so it does not replace a real git installation for
 everyday version-control work (for publishing a site with
 \verb{git push}, install git from \url{https://git-scm.com/downloads/}).
 }
-\examples{
-\dontrun{
-install_git()
-
-# offline: point at an archive downloaded elsewhere
-install_git(file = "C:/Users/me/Downloads/MinGit-2.55.0.3-64-bit.zip")
-}
-}

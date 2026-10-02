@@ -48,8 +48,8 @@ previews.
 library(jekylldown)
 
 migrate_hugo(
-  from  = "~/path/to/my-hugo-site",   # blogdown/Hugo site (read-only)
-  to    = "~/path/to/my-new-site",    # created; must not exist yet
+  from  = "path/to/my-hugo-site",     # blogdown/Hugo site (read-only)
+  to    = "path/to/my-new-site",      # created; must not exist yet
   theme = "al-folio",                 # fetched from GitHub (network needed)
   only_referenced = TRUE,             # skip static files nothing links to
   publications = "bib",               # the default; papers.bib from the DOIs (see below)
@@ -109,7 +109,7 @@ custom `layouts/`) -- review that list before assuming it can be dropped.
 Knit everything (no Jekyll needed) and read the output:
 
 ```{r}
-build_site("~/path/to/my-new-site", local_jekyll = FALSE)
+build_site("path/to/my-new-site", local_jekyll = FALSE)
 ```
 
 Things worth checking in `_posts/*.md`:
@@ -180,13 +180,13 @@ Verified with al-folio as of September 2026:
 ## Step 4 -- preview locally (optional)
 
 al-folio manages its plugins with Bundler, so install its gems once into
-jekylldown's isolated environment, then serve:
+jekylldown's isolated environment with
+`bundle_install("path/to/my-new-site")`, then serve:
 
 ```{r}
-bundle_install("~/path/to/my-new-site")
-serve_site("~/path/to/my-new-site")
+serve_site("path/to/my-new-site")
 # ... edit _source/*.Rmd; saving re-knits and reloads the browser
-stop_server()
+stop_server("path/to/my-new-site")
 ```
 
 After `bundle_install()`, `build_site()` and `serve_site()` automatically
@@ -201,15 +201,16 @@ use `bundle exec jekyll`, so the theme's plugins are found.
    Actions** as the source: al-folio's bundled workflow
    (`.github/workflows/deploy.yml`) builds and publishes the site on
    every push.
-3. Your R workflow from then on: `new_post()`, write, `build_site()` (or
-   just knit via `build_site(local_jekyll = FALSE)`), commit, push. No
+3. Your R workflow from then on: `new_post("Title", dir = site)`, write,
+   `build_site(site)` (or just knit via
+   `build_site(site, local_jekyll = FALSE)`), commit, push. No
    more two-repository setup as with blogdown -- the source and the built
    site live in one repo, built remotely.
 
 ## Migration checklist
 
 - [ ] `migrate_hugo()` ran clean; skipped posts (if any) handled
-- [ ] posts knit with `build_site(local_jekyll = FALSE)`
+- [ ] posts knit with `build_site(site, local_jekyll = FALSE)`
 - [ ] shortcodes from the report ported
 - [ ] `_config.yml` reviewed (identity was set; check `baseurl`, extras)
 - [ ] pages not in the Hugo menu (report's manual list) triaged

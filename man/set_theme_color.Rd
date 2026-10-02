@@ -4,16 +4,15 @@
 \alias{set_theme_color}
 \title{Set the al-folio accent color}
 \usage{
-set_theme_color(color = NULL, dir = ".")
+set_theme_color(color = NULL, dir)
 }
 \arguments{
 \item{color}{A named theme color (e.g. \code{"red"}, \code{"blue"}, \code{"green"},
 \code{"cyan"}, \code{"purple"}, \code{"pink"}, \code{"orange"}, \code{"yellow"}) or a CSS hex
 value like \code{"#b71c1c"}.}
 
-\item{dir}{Site root, or any directory inside it -- like
-\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site, so the
-default \code{"."} works from anywhere in the site's project.}
+\item{dir}{Site root, or any directory inside it. Like
+\code{\link[=build_site]{build_site()}}, the function climbs to the enclosing site.}
 }
 \value{
 The hex color applied, invisibly.
@@ -51,12 +50,8 @@ the next customization call.
 
 \examples{
 \dontrun{
-# from anywhere inside the site's project:
-set_theme_color("red")
-set_theme_color("#0057b7")
-set_theme_color(NULL)                      # back to the theme default
-
-# from outside, name the site:
 set_theme_color("red", dir = "my-site")
+set_theme_color("#0057b7", dir = "my-site")
+set_theme_color(NULL, dir = "my-site")   # back to the theme default
 }
 }

@@ -4,7 +4,7 @@
 \alias{stop_server}
 \title{Stop servers started by \code{\link[=serve_site]{serve_site()}}}
 \usage{
-stop_server(dir = ".")
+stop_server(dir)
 }
 \arguments{
 \item{dir}{Directory in (or under) a site served with

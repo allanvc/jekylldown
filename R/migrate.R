@@ -94,17 +94,16 @@
 #' @examples
 #' \dontrun{
 #' migrate_hugo(
-#'   from  = "~/blog-hugo",     # existing blogdown/Hugo site (never written to)
-#'   to    = "~/blog-jekyll",   # created here; must not exist yet
+#'   from  = "blog-hugo",       # existing blogdown/Hugo site (never written to)
+#'   to    = "blog-jekyll",     # created here; must not exist yet
 #'   theme = "al-folio",
 #'   only_referenced = TRUE,    # copy only the static files actually used
 #'   theme_color = "red"
 #' )
 #'
-#' # then preview locally:
-#' bundle_install("~/blog-jekyll")
-#' build_site("~/blog-jekyll")
-#' serve_site("~/blog-jekyll")
+#' # then, after bundle_install("blog-jekyll") once, preview locally:
+#' build_site("blog-jekyll")
+#' serve_site("blog-jekyll")
 #' }
 #' @export
 migrate_hugo <- function(from, to, theme = c("minima", "al-folio",
